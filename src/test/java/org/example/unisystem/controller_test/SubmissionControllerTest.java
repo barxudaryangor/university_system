@@ -6,11 +6,14 @@ import org.example.unisystem.dto.submission.SubmissionCreateDTO;
 import org.example.unisystem.dto.submission.SubmissionDTO;
 import org.example.unisystem.dto.submission.SubmissionPatchDTO;
 import org.example.unisystem.dto.submission.SubmissionUpdateDTO;
-import org.example.unisystem.entity.Submission;
+import org.example.unisystem.pagination.PaginationResponse;
 import org.example.unisystem.service_interface.SubmissionService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -63,18 +66,30 @@ public class SubmissionControllerTest {
                 2L, LocalDate.of(1010,10,10), new BigDecimal(20), null, null
         );
 
-        when(submissionService.getAllSubmissions()).thenReturn(List.of(dto,dto2));
+        PaginationResponse<SubmissionDTO> response =
+                new PaginationResponse<>(
+                    new PageImpl<>(List.of(dto,dto2),
+                            PageRequest.of(0,10), 2)
+        );
 
-        mockMvc.perform(get("/uni/submissions"))
+
+        when(submissionService.getAllSubmissions(any(Pageable.class))).thenReturn(response);
+
+        mockMvc.perform(get("/uni/submissions?page=0&size=10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(dto.getId()))
-                .andExpect(jsonPath("$[0].grade").value(dto.getGrade()))
-                .andExpect(jsonPath("$[0].submittedAt").value(dto.getSubmittedAt().toString()))
-                .andExpect(jsonPath("$[1].id").value(dto2.getId()))
-                .andExpect(jsonPath("$[1].grade").value(dto2.getGrade()))
-                .andExpect(jsonPath("$[1].submittedAt").value(dto2.getSubmittedAt().toString()));
+                .andExpect(jsonPath("$.content[0].id").value(dto.getId()))
+                .andExpect(jsonPath("$.content[0].grade").value(dto.getGrade()))
+                .andExpect(jsonPath("$.content[0].submittedAt").value(dto.getSubmittedAt().toString()))
+                .andExpect(jsonPath("$.content[1].id").value(dto2.getId()))
+                .andExpect(jsonPath("$.content[1].grade").value(dto2.getGrade()))
+                .andExpect(jsonPath("$.content[1].submittedAt").value(dto2.getSubmittedAt().toString()))
+                .andExpect(jsonPath("$.totalPages").value(response.getTotalPages()))
+                .andExpect(jsonPath("$.totalElements").value(response.getTotalElements()))
+                .andExpect(jsonPath("$.last").value(response.isLast()))
+                .andExpect(jsonPath("$.pageNum").value(response.getPageNum()))
+                .andExpect(jsonPath("$.pageNum").value(0));
 
-        verify(submissionService).getAllSubmissions();
+        verify(submissionService).getAllSubmissions(any(Pageable.class));
 
     }
 

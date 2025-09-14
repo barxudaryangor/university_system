@@ -10,12 +10,13 @@ import org.example.unisystem.entity.Professor;
 import org.example.unisystem.exception.professor.ProfessorNotFoundException;
 import org.example.unisystem.jpa_repo.ProfessorJpaRepository;
 import org.example.unisystem.mappers.ProfessorMapper;
+import org.example.unisystem.pagination.PaginationResponse;
 import org.example.unisystem.patch.ProfessorPatchApplier;
 import org.example.unisystem.service_interface.ProfessorService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -34,11 +35,12 @@ public class ProfessorServiceImpl implements ProfessorService {
     }
 
     @Override
-    public List<ProfessorDTO> getAllProfessors() {
-        return professorJpaRepository.findAll().stream()
-                .map(professorMapper::professorToDTO)
-                .toList();
+    public PaginationResponse<ProfessorDTO> getAllProfessors(Pageable pageable) {
+        Page<Professor> page = professorJpaRepository.findAll(pageable);
+        Page<ProfessorDTO> request = page.map(professorMapper::professorToDTO);
+        return new PaginationResponse<>(request);
     }
+
 
     @Override
     @Transactional

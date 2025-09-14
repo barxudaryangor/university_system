@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -20,8 +21,6 @@ import org.springframework.web.context.WebApplicationContext;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @Import(ContainerConfig.class)
@@ -37,10 +36,14 @@ public class CourseTest {
     @Autowired
     CourseJpaRepository courseJpaRepository;
 
+    @Autowired
+    JdbcTemplate jdbcTemplate;
+
     @BeforeEach
     void setupMvc() {
         mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
         courseJpaRepository.deleteAll();
+        jdbcTemplate.execute("ALTER SEQUENCE course_id_seq RESTART WITH 1");
     }
 
     @Test
@@ -89,13 +92,18 @@ public class CourseTest {
 
         CourseDTO dto2 = objectMapper.readValue(response2, CourseDTO.class);
 
-        mockMvc.perform(get("/uni/courses"))
-                .andExpect(jsonPath("$[0].id").value(dto.getId()))
-                .andExpect(jsonPath("$[0].title").value(dto.getTitle()))
-                .andExpect(jsonPath("$[0].credits").value(dto.getCredits()))
-                .andExpect(jsonPath("$[1].id").value(dto2.getId()))
-                .andExpect(jsonPath("$[1].title").value(dto2.getTitle()))
-                .andExpect(jsonPath("$[1].credits").value(dto2.getCredits()));
+        mockMvc.perform(get("/uni/courses?page=0&size=10"))
+                .andExpect(jsonPath("$.content[0].id").value(dto.getId()))
+                .andExpect(jsonPath("$.content[0].title").value(dto.getTitle()))
+                .andExpect(jsonPath("$.content[0].credits").value(dto.getCredits()))
+                .andExpect(jsonPath("$.content[1].id").value(dto2.getId()))
+                .andExpect(jsonPath("$.content[1].title").value(dto2.getTitle()))
+                .andExpect(jsonPath("$.content[1].credits").value(dto2.getCredits()))
+                .andExpect(jsonPath("$.pageSize").value(10))
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.last").value(true))
+                .andExpect(jsonPath("$.pageNum").value(0));
 
 
 
@@ -140,6 +148,7 @@ public class CourseTest {
         mockMvc.perform(put("/uni/courses/" + courseDTO.getId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(updateRequest))
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(courseDTO.getId()))
                 .andExpect(jsonPath("$.title").value(updateDTO.getTitle()))
                 .andExpect(jsonPath("$.credits").value(updateDTO.getCredits()));

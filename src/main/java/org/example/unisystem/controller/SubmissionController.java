@@ -4,13 +4,14 @@ import org.example.unisystem.dto.submission.SubmissionCreateDTO;
 import org.example.unisystem.dto.submission.SubmissionDTO;
 import org.example.unisystem.dto.submission.SubmissionPatchDTO;
 import org.example.unisystem.dto.submission.SubmissionUpdateDTO;
+import org.example.unisystem.pagination.PaginationResponse;
 import org.example.unisystem.service_interface.SubmissionService;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/uni/submissions")
@@ -27,8 +28,13 @@ public class SubmissionController {
     }
 
     @GetMapping
-    List<SubmissionDTO> getAllSubmissions() {
-        return submissionService.getAllSubmissions();
+    PaginationResponse<SubmissionDTO> getAllSubmissions(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+
+    ) {
+        Pageable pageable = PageRequest.of(page,size);
+        return submissionService.getAllSubmissions(pageable);
     }
 
     @PostMapping

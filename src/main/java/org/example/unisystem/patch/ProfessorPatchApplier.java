@@ -1,16 +1,13 @@
 package org.example.unisystem.patch;
 
 import lombok.RequiredArgsConstructor;
-import org.example.unisystem.dto.professor.ProfessorDTO;
 import org.example.unisystem.dto.professor.ProfessorPatchDTO;
 import org.example.unisystem.entity.Course;
 import org.example.unisystem.entity.Professor;
 import org.example.unisystem.jpa_repo.CourseJpaRepository;
 import org.example.unisystem.short_dto.CourseShortDTO;
-import org.example.unisystem.short_dto.ProfessorShortDTO;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;

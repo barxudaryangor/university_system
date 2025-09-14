@@ -7,8 +7,6 @@ import org.example.unisystem.entity.Submission;
 import org.example.unisystem.mapper_helper.SubmissionMapperHelper;
 import org.mapstruct.*;
 
-import java.util.HashSet;
-
 @Mapper(componentModel = "spring", uses = SubmissionMapperHelper.class)
 public interface SubmissionMapper {
 

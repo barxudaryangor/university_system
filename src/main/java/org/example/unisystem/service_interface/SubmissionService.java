@@ -4,14 +4,16 @@ import org.example.unisystem.dto.submission.SubmissionCreateDTO;
 import org.example.unisystem.dto.submission.SubmissionDTO;
 import org.example.unisystem.dto.submission.SubmissionPatchDTO;
 import org.example.unisystem.dto.submission.SubmissionUpdateDTO;
+import org.example.unisystem.pagination.PaginationResponse;
 
-import java.util.List;
+import org.springframework.data.domain.Pageable;
 
 public interface SubmissionService {
     SubmissionDTO getSubmissionById(Long id);
-    List<SubmissionDTO> getAllSubmissions();
+    PaginationResponse<SubmissionDTO> getAllSubmissions(Pageable pageable);
     SubmissionDTO createSubmission(SubmissionCreateDTO createDTO);
     SubmissionDTO updateSubmission(Long id, SubmissionUpdateDTO updateDTO);
     SubmissionDTO patchSubmission(Long id, SubmissionPatchDTO patchDTO);
     void deleteSubmission(Long id);
+    SubmissionDTO submitWork(Long studentId, Long assignmentId, SubmissionCreateDTO dto);
 }

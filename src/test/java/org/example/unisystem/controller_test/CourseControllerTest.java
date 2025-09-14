@@ -2,18 +2,27 @@ package org.example.unisystem.controller_test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.unisystem.controller.CourseController;
+import org.example.unisystem.dto.assignment.AssignmentCreateDTO;
+import org.example.unisystem.dto.assignment.AssignmentDTO;
 import org.example.unisystem.dto.course.CourseCreateDTO;
 import org.example.unisystem.dto.course.CourseDTO;
 import org.example.unisystem.dto.course.CoursePatchDTO;
 import org.example.unisystem.dto.course.CourseUpdateDTO;
+import org.example.unisystem.pagination.PaginationResponse;
+import org.example.unisystem.service_interface.AssignmentService;
 import org.example.unisystem.service_interface.CourseService;
+import org.example.unisystem.short_dto.CourseShortDTO;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -26,6 +35,9 @@ public class CourseControllerTest {
 
     @MockitoBean
     CourseService courseService;
+
+    @MockitoBean
+    AssignmentService assignmentService;
 
     @Autowired
     ObjectMapper objectMapper;
@@ -61,18 +73,31 @@ public class CourseControllerTest {
                 2L, "Title2", 10, null, null,null
         );
 
-        when(courseService.getAllCourses()).thenReturn(List.of(courseDTO, courseDTO2));
+        PaginationResponse<CourseDTO> response = new PaginationResponse<>(
+                new PageImpl<>(
+                        List.of(courseDTO, courseDTO2), PageRequest.of(0,10), 2
+                )
+        );
 
-        mockMvc.perform(get("/uni/courses"))
+
+        when(courseService.getAllCourses(any(Pageable.class))).thenReturn(response);
+
+        mockMvc.perform(get("/uni/courses?page=0&size=10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(courseDTO.getId()))
-                .andExpect(jsonPath("$[0].title").value(courseDTO.getTitle()))
-                .andExpect(jsonPath("$[0].credits").value(courseDTO.getCredits()))
-                .andExpect(jsonPath("$[1].id").value(courseDTO2.getId()))
-                .andExpect(jsonPath("$[1].title").value(courseDTO2.getTitle()))
-                .andExpect(jsonPath("$[1].credits").value(courseDTO2.getCredits()));
+                .andExpect(jsonPath("$.content[0].id").value(courseDTO.getId()))
+                .andExpect(jsonPath("$.content[0].title").value(courseDTO.getTitle()))
+                .andExpect(jsonPath("$.content[0].credits").value(courseDTO.getCredits()))
+                .andExpect(jsonPath("$.content[1].id").value(courseDTO2.getId()))
+                .andExpect(jsonPath("$.content[1].title").value(courseDTO2.getTitle()))
+                .andExpect(jsonPath("$.content[1].credits").value(courseDTO2.getCredits()))
+                .andExpect(jsonPath("$.totalPages").value(response.getTotalPages()))
+                .andExpect(jsonPath("$.totalElements").value(response.getTotalElements()))
+                .andExpect(jsonPath("$.pageNum").value(response.getPageNum()))
+                .andExpect(jsonPath("$.last").value(response.isLast()))
+                .andExpect(jsonPath("$.pageNum").value(0));
 
-        verify(courseService).getAllCourses();
+
+        verify(courseService).getAllCourses(any(Pageable.class));
     }
 
     @Test
@@ -101,6 +126,38 @@ public class CourseControllerTest {
 
         verify(courseService).createCourse(any(CourseCreateDTO.class));
 
+    }
+
+    @Test
+    void createAssignmentForCourseWithoutProfessor() throws Exception {
+        AssignmentCreateDTO createDTO = new AssignmentCreateDTO(
+                "title", LocalDate.of(2030,10,10), null, null
+        );
+
+        String request = objectMapper.writeValueAsString(createDTO);
+
+        CourseShortDTO courseShortDTO = new CourseShortDTO(
+                1L, "title", 10
+        );
+
+        AssignmentDTO assignmentDTO = new AssignmentDTO(
+                1L, "title", LocalDate.of(2030,10,10), courseShortDTO , null
+        );
+
+        when(assignmentService.createAssignmentForCourse( isNull(), eq(1L), any(AssignmentCreateDTO.class))).thenReturn(assignmentDTO);
+
+        mockMvc.perform(post("/uni/courses/" + 1L +"/assignments")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(assignmentDTO.getId()))
+                .andExpect(jsonPath("$.title").value(assignmentDTO.getTitle()))
+                .andExpect(jsonPath("$.dueDate").value(assignmentDTO.getDueDate().toString()))
+                .andExpect(jsonPath("$.course.id").value(courseShortDTO.id()))
+                .andExpect(jsonPath("$.course.title").value(courseShortDTO.title()))
+                .andExpect(jsonPath("$.course.credits").value(courseShortDTO.credits()));
+
+        verify(assignmentService).createAssignmentForCourse(isNull(), eq(1L), any(AssignmentCreateDTO.class));
     }
 
     @Test

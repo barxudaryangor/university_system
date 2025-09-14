@@ -22,8 +22,6 @@ import java.time.LocalDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @Import(ContainerConfig.class)
@@ -99,13 +97,18 @@ public class AssignmentTest {
 
         AssignmentDTO created2 = objectMapper.readValue(response2, AssignmentDTO.class);
 
-        mockMvc.perform(get("/uni/assignments"))
-                .andExpect(jsonPath("$[0].id").value(created.getId()))
-                .andExpect(jsonPath("$[0].title").value(created.getTitle()))
-                .andExpect(jsonPath("$[0].dueDate").value(created.getDueDate().toString()))
-                .andExpect(jsonPath("$[1].id").value(created2.getId()))
-                .andExpect(jsonPath("$[1].title").value(created2.getTitle()))
-                .andExpect(jsonPath("$[1].dueDate").value(created2.getDueDate().toString()));
+        mockMvc.perform(get("/uni/assignments?page=0&size=10"))
+                .andExpect(jsonPath("$.content[0].id").value(created.getId()))
+                .andExpect(jsonPath("$.content[0].title").value(created.getTitle()))
+                .andExpect(jsonPath("$.content[0].dueDate").value(created.getDueDate().toString()))
+                .andExpect(jsonPath("$.content[1].id").value(created2.getId()))
+                .andExpect(jsonPath("$.content[1].title").value(created2.getTitle()))
+                .andExpect(jsonPath("$.content[1].dueDate").value(created2.getDueDate().toString()))
+                .andExpect(jsonPath("$.pageSize").value(10))
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.last").value(true))
+                .andExpect(jsonPath("$.pageNum").value(0));
     }
 
     @Test

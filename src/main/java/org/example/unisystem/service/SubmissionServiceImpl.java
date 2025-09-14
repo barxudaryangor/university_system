@@ -5,16 +5,23 @@ import org.example.unisystem.dto.submission.SubmissionCreateDTO;
 import org.example.unisystem.dto.submission.SubmissionDTO;
 import org.example.unisystem.dto.submission.SubmissionPatchDTO;
 import org.example.unisystem.dto.submission.SubmissionUpdateDTO;
+import org.example.unisystem.entity.Assignment;
+import org.example.unisystem.entity.Student;
 import org.example.unisystem.entity.Submission;
+import org.example.unisystem.exception.assignment.AssignmentNotFoundException;
+import org.example.unisystem.exception.student.StudentNotFoundException;
 import org.example.unisystem.exception.submission.SubmissionNotFoundException;
+import org.example.unisystem.jpa_repo.AssignmentJpaRepository;
+import org.example.unisystem.jpa_repo.StudentJpaRepository;
 import org.example.unisystem.jpa_repo.SubmissionJpaRepository;
 import org.example.unisystem.mappers.SubmissionMapper;
+import org.example.unisystem.pagination.PaginationResponse;
 import org.example.unisystem.patch.SubmissionPatchApplier;
 import org.example.unisystem.service_interface.SubmissionService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +31,8 @@ public class SubmissionServiceImpl implements SubmissionService {
     private final SubmissionJpaRepository submissionJpaRepository;
     private final SubmissionMapper submissionMapper;
     private final SubmissionPatchApplier patchApplier;
+    private final StudentJpaRepository studentJpaRepository;
+    private final AssignmentJpaRepository assignmentJpaRepository;
 
     @Override
     public SubmissionDTO getSubmissionById(Long id) {
@@ -33,10 +42,10 @@ public class SubmissionServiceImpl implements SubmissionService {
     }
 
     @Override
-    public List<SubmissionDTO> getAllSubmissions() {
-        return submissionJpaRepository.findAll().stream()
-                .map(submissionMapper::submissionToDTO)
-                .toList();
+    public PaginationResponse<SubmissionDTO> getAllSubmissions(Pageable pageable) {
+        Page<Submission> page = submissionJpaRepository.findAll(pageable);
+        Page<SubmissionDTO> response = page.map(submissionMapper::submissionToDTO);
+        return new PaginationResponse<>(response);
     }
 
     @Override
@@ -70,5 +79,21 @@ public class SubmissionServiceImpl implements SubmissionService {
         Submission submission = submissionJpaRepository.findByIdGraph(id)
                 .orElseThrow(() -> new SubmissionNotFoundException(id));
         submissionJpaRepository.delete(submission);
+    }
+
+    @Override
+    @Transactional
+    public SubmissionDTO submitWork(Long studentId, Long assignmentId, SubmissionCreateDTO dto) {
+        Student student = studentJpaRepository.findByIdGraph(studentId)
+                .orElseThrow(() -> new StudentNotFoundException(studentId));
+
+        Assignment assignment = assignmentJpaRepository.findByIdGraph(assignmentId)
+                .orElseThrow(() -> new AssignmentNotFoundException(assignmentId));
+
+        Submission submission = submissionMapper.dtoToSubmission(dto);
+        submission.setStudent(student);
+        submission.setAssignment(assignment);
+
+        return submissionMapper.submissionToDTO(submissionJpaRepository.save(submission));
     }
 }

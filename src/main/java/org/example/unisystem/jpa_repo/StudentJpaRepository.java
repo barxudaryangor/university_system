@@ -13,4 +13,5 @@ public interface StudentJpaRepository extends JpaRepository<Student, Long> {
     @Query("select s from Student s where s.id = :id")
     Optional<Student> findByIdGraph(Long id);
 
+
 }

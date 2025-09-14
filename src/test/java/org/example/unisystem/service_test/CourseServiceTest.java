@@ -5,8 +5,11 @@ import org.example.unisystem.dto.course.CourseDTO;
 import org.example.unisystem.dto.course.CoursePatchDTO;
 import org.example.unisystem.dto.course.CourseUpdateDTO;
 import org.example.unisystem.entity.Course;
+import org.example.unisystem.entity.Professor;
 import org.example.unisystem.jpa_repo.CourseJpaRepository;
+import org.example.unisystem.jpa_repo.ProfessorJpaRepository;
 import org.example.unisystem.mappers.CourseMapper;
+import org.example.unisystem.pagination.PaginationResponse;
 import org.example.unisystem.patch.CoursePatchApplier;
 import org.example.unisystem.service.CourseServiceImpl;
 import org.junit.jupiter.api.Test;
@@ -14,6 +17,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,6 +32,9 @@ import static org.mockito.Mockito.*;
 public class CourseServiceTest {
     @Mock
     CourseJpaRepository courseJpaRepository;
+
+    @Mock
+    ProfessorJpaRepository professorJpaRepository;
 
     @Mock
     CourseMapper courseMapper;
@@ -88,9 +98,11 @@ public class CourseServiceTest {
                 )
         );
 
-        when(courseJpaRepository.findAll()).thenReturn(List.of(course,course2));
+        Page<Course> page = new PageImpl<>(List.of(course,course2), PageRequest.of(0,10),2);
+        when(courseJpaRepository.findAll(any(Pageable.class))).thenReturn(page);
 
-        List<CourseDTO> courses = courseService.getAllCourses();
+        PaginationResponse<CourseDTO> response = courseService.getAllCourses(PageRequest.of(0,10));
+        List<CourseDTO> courses = response.getContent();
 
         assertEquals(courses.get(0).getId(), course.getId());
         assertEquals(courses.get(0).getTitle(), course.getTitle());
@@ -98,7 +110,11 @@ public class CourseServiceTest {
         assertEquals(courses.get(1).getId(), course2.getId());
         assertEquals(courses.get(1).getTitle(), course2.getTitle());
         assertEquals(courses.get(1).getCredits(), course2.getCredits());
-
+        assertEquals(0, response.getPageNum());
+        assertEquals(10, response.getPageSize());
+        assertEquals(2, response.getTotalElements());
+        assertEquals(1, response.getTotalPages());
+        assertEquals(true, response.isLast());
     }
 
     @Test
@@ -129,6 +145,47 @@ public class CourseServiceTest {
         assertEquals(request.getCredits(), dto.getCredits());
 
         verify(courseJpaRepository).save(entity);
+    }
+
+    @Test
+    void createCourseByProfessor() {
+        Professor professor = new Professor(
+                1L, "name", "surname", "department", null
+        );
+
+        when(professorJpaRepository.findByIdGraph(1L)).thenReturn(Optional.of(professor));
+
+        CourseCreateDTO createDTO = new CourseCreateDTO(
+                "title", 10, null, null, null
+        );
+
+        Course course = new Course(
+                null, "title", 10, null, null, null
+        );
+
+        Course savedCourse = new Course(
+                1L, "title", 10, null, null, null
+        );
+
+        CourseDTO expectedCourse = new CourseDTO(
+                1L, "title", 10, null, null, null
+        );
+
+        when(courseMapper.dtoToCourse(createDTO)).thenReturn(course);
+        when(courseJpaRepository.save(course)).thenReturn(savedCourse);
+        when(courseMapper.courseToDTO(savedCourse)).thenReturn(expectedCourse);
+
+        CourseDTO result = courseService.createCourseByProfessor(1L, createDTO);
+
+        assertEquals(expectedCourse, result);
+        assertEquals(professor, course.getProfessor());
+
+        verify(professorJpaRepository).findByIdGraph(1L);
+        verify(courseMapper).dtoToCourse(createDTO);
+        verify(courseJpaRepository).save(course);
+        verify(courseMapper).courseToDTO(savedCourse);
+        verifyNoMoreInteractions(professorJpaRepository, courseMapper, courseJpaRepository);
+
     }
 
     @Test

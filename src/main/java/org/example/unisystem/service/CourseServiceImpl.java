@@ -6,16 +6,19 @@ import org.example.unisystem.dto.course.CourseDTO;
 import org.example.unisystem.dto.course.CoursePatchDTO;
 import org.example.unisystem.dto.course.CourseUpdateDTO;
 import org.example.unisystem.entity.Course;
+import org.example.unisystem.entity.Professor;
 import org.example.unisystem.exception.course.CourseNotFoundException;
+import org.example.unisystem.exception.professor.ProfessorNotFoundException;
 import org.example.unisystem.jpa_repo.CourseJpaRepository;
+import org.example.unisystem.jpa_repo.ProfessorJpaRepository;
 import org.example.unisystem.mappers.CourseMapper;
+import org.example.unisystem.pagination.PaginationResponse;
 import org.example.unisystem.patch.CoursePatchApplier;
 import org.example.unisystem.service_interface.CourseService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestBody;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +26,7 @@ import java.util.List;
 public class CourseServiceImpl implements CourseService {
 
     private final CourseJpaRepository courseJpaRepository;
+    private final ProfessorJpaRepository professorJpaRepository;
     private final CourseMapper courseMapper;
     private final CoursePatchApplier patchApplier;
 
@@ -34,10 +38,10 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public List<CourseDTO> getAllCourses() {
-        return courseJpaRepository.findAll().stream()
-                .map(courseMapper::courseToDTO)
-                .toList();
+    public PaginationResponse<CourseDTO> getAllCourses(Pageable pageable) {
+        Page<Course> page = courseJpaRepository.findAll(pageable);
+        Page<CourseDTO> response = page.map(courseMapper::courseToDTO);
+        return new PaginationResponse<>(response);
     }
 
     @Override
@@ -71,5 +75,15 @@ public class CourseServiceImpl implements CourseService {
         Course course = courseJpaRepository.findByIdGraph(id)
                 .orElseThrow(() -> new CourseNotFoundException(id));
         courseJpaRepository.delete(course);
+    }
+
+    @Override
+    @Transactional
+    public CourseDTO createCourseByProfessor(Long professorId, CourseCreateDTO dto) {
+        Professor professor = professorJpaRepository.findByIdGraph(professorId)
+                .orElseThrow(() -> new ProfessorNotFoundException(professorId));
+        Course course = courseMapper.dtoToCourse(dto);
+        course.setProfessor(professor);
+        return courseMapper.courseToDTO(courseJpaRepository.save(course));
     }
 }

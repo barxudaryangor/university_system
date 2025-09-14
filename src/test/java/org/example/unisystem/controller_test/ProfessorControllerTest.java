@@ -2,22 +2,33 @@ package org.example.unisystem.controller_test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.unisystem.controller.ProfessorController;
+import org.example.unisystem.dto.assignment.AssignmentCreateDTO;
+import org.example.unisystem.dto.assignment.AssignmentDTO;
+import org.example.unisystem.dto.course.CourseCreateDTO;
+import org.example.unisystem.dto.course.CourseDTO;
 import org.example.unisystem.dto.professor.ProfessorCreateDTO;
 import org.example.unisystem.dto.professor.ProfessorDTO;
 import org.example.unisystem.dto.professor.ProfessorPatchDTO;
 import org.example.unisystem.dto.professor.ProfessorUpdateDTO;
+import org.example.unisystem.pagination.PaginationResponse;
+import org.example.unisystem.service_interface.AssignmentService;
+import org.example.unisystem.service_interface.CourseService;
 import org.example.unisystem.service_interface.ProfessorService;
+import org.example.unisystem.short_dto.CourseShortDTO;
+import org.example.unisystem.short_dto.ProfessorShortDTO;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDate;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -33,6 +44,12 @@ public class ProfessorControllerTest {
 
     @MockitoBean
     ProfessorService professorService;
+
+    @MockitoBean
+    AssignmentService assignmentService;
+
+    @MockitoBean
+    CourseService courseService;
 
     @Test
     void getProfessorById() throws Exception {
@@ -63,20 +80,31 @@ public class ProfessorControllerTest {
                 2L, "Name2", "Surname2", "Department2", null
         );
 
-        when(professorService.getAllProfessors()).thenReturn(List.of(professorDTO, professorDTO2));
+        PaginationResponse<ProfessorDTO> response = new PaginationResponse<>(
+                new PageImpl<>(List.of(professorDTO, professorDTO2),
+                        PageRequest.of(0,10), 2)
+        );
 
-        mockMvc.perform(get("/uni/professors"))
+        when(professorService.getAllProfessors(any(Pageable.class))).thenReturn(response);
+
+        mockMvc.perform(get("/uni/professors?page=0&size=10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(professorDTO.getId()))
-                .andExpect(jsonPath("$[0].name").value(professorDTO.getName()))
-                .andExpect(jsonPath("$[0].surname").value(professorDTO.getSurname()))
-                .andExpect(jsonPath("$[0].department").value(professorDTO.getDepartment()))
-                .andExpect(jsonPath("$[1].id").value(professorDTO2.getId()))
-                .andExpect(jsonPath("$[1].name").value(professorDTO2.getName()))
-                .andExpect(jsonPath("$[1].surname").value(professorDTO2.getSurname()))
-                .andExpect(jsonPath("$[1].department").value(professorDTO2.getDepartment()));
+                .andExpect(jsonPath("$.content[0].id").value(professorDTO.getId()))
+                .andExpect(jsonPath("$.content[0].name").value(professorDTO.getName()))
+                .andExpect(jsonPath("$.content[0].surname").value(professorDTO.getSurname()))
+                .andExpect(jsonPath("$.content[0].department").value(professorDTO.getDepartment()))
+                .andExpect(jsonPath("$.content[1].id").value(professorDTO2.getId()))
+                .andExpect(jsonPath("$.content[1].name").value(professorDTO2.getName()))
+                .andExpect(jsonPath("$.content[1].surname").value(professorDTO2.getSurname()))
+                .andExpect(jsonPath("$.content[1].department").value(professorDTO2.getDepartment()))
+                .andExpect(jsonPath("$.totalPages").value(response.getTotalPages()))
+                .andExpect(jsonPath("$.totalElements").value(response.getTotalElements()))
+                .andExpect(jsonPath("$.pageNum").value(response.getPageNum()))
+                .andExpect(jsonPath("$.last").value(response.isLast()))
+                .andExpect(jsonPath("$.pageNum").value(0));
 
-        verify(professorService).getAllProfessors();
+
+        verify(professorService).getAllProfessors(any(Pageable.class));
     }
 
     @Test
@@ -105,6 +133,78 @@ public class ProfessorControllerTest {
         verify(professorService).createProfessor(any(ProfessorCreateDTO.class));
 
 
+    }
+
+    @Test
+    void createCourseByProfessor() throws Exception {
+        ProfessorShortDTO professorDTO = new ProfessorShortDTO(
+                1L, "name", "surname", "department"
+        );
+
+        CourseCreateDTO createDTO = new CourseCreateDTO(
+                "title", 10, null, null, null
+        );
+
+        String request = objectMapper.writeValueAsString(createDTO);
+
+        CourseDTO courseDTO = new CourseDTO(
+                2L, "title", 10, null, professorDTO, null
+        );
+
+        when(courseService.createCourseByProfessor(eq(1L), any(CourseCreateDTO.class))).thenReturn(courseDTO);
+
+        mockMvc.perform(post("/uni/professors/1/courses")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(courseDTO.getId()))
+                .andExpect(jsonPath("$.title").value(courseDTO.getTitle()))
+                .andExpect(jsonPath("$.credits").value(courseDTO.getCredits()))
+                .andExpect(jsonPath("$.professor.id").value(professorDTO.id()))
+                .andExpect(jsonPath("$.professor.name").value(professorDTO.name()))
+                .andExpect(jsonPath("$.professor.surname").value(professorDTO.surname()))
+                .andExpect(jsonPath("$.professor.department").value(professorDTO.department()));
+
+        verify(courseService).createCourseByProfessor(eq(1L), any(CourseCreateDTO.class));
+        verifyNoMoreInteractions(courseService);
+    }
+
+    @Test
+    void createAssignmentForProfessor() throws Exception {
+        AssignmentCreateDTO dto = new AssignmentCreateDTO(
+                "title", LocalDate.of(2030,10,10), null, null
+        );
+
+        String request = objectMapper.writeValueAsString(dto);
+
+        CourseShortDTO courseShortDTO = new CourseShortDTO(
+                1L, "t", 10
+        );
+
+        ProfessorDTO professorDTO = new ProfessorDTO(
+                2L,"name", "surname", "department", List.of(courseShortDTO)
+        );
+
+        AssignmentDTO assignmentDTO = new AssignmentDTO(
+                3L, "title", LocalDate.of(2030,10,10), courseShortDTO, null
+        );
+
+        when(assignmentService.createAssignmentForCourse(eq(2L), eq(1L), any(AssignmentCreateDTO.class)))
+                .thenReturn(assignmentDTO);
+
+        mockMvc.perform(post("/uni/professors/{professorId}/courses/{courseId}/assignments", 2L, 1L)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(assignmentDTO.getId()))
+                .andExpect(jsonPath("$.title").value(assignmentDTO.getTitle()))
+                .andExpect(jsonPath("$.dueDate").value(assignmentDTO.getDueDate().toString()))
+                .andExpect(jsonPath("$.course.id").value(courseShortDTO.id()))
+                .andExpect(jsonPath("$.course.title").value(courseShortDTO.title()))
+                .andExpect(jsonPath("$.course.credits").value(courseShortDTO.credits()));
+
+        verify(assignmentService).createAssignmentForCourse(eq(2L), eq(1L), any(AssignmentCreateDTO.class));
+        verifyNoMoreInteractions(assignmentService);
     }
 
     @Test

@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -21,11 +22,8 @@ import org.springframework.web.context.WebApplicationContext;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @Import(ContainerConfig.class)
@@ -41,10 +39,14 @@ public class SubmissionTest {
 
     private MockMvc mockMvc;
 
+    @Autowired
+    JdbcTemplate jdbcTemplate;
+
     @BeforeEach
     void setMockMvc() {
         mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
         submissionJpaRepository.deleteAll();
+        jdbcTemplate.execute("ALTER SEQUENCE submission_id_seq RESTART WITH 1");
     }
 
     @Test
@@ -94,14 +96,23 @@ public class SubmissionTest {
 
         SubmissionDTO dto2 = objectMapper.readValue(response2, SubmissionDTO.class);
 
-        mockMvc.perform(get("/uni/submissions"))
+        mockMvc.perform(get("/uni/submissions?page=0&size=10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(dto.getId()))
-                .andExpect(jsonPath("$[0].grade").value(dto.getGrade()))
-                .andExpect(jsonPath("$[0].submittedAt").value(dto.getSubmittedAt().toString()))
-                .andExpect(jsonPath("$[1].id").value(dto2.getId()))
-                .andExpect(jsonPath("$[1].grade").value(dto2.getGrade()))
-                .andExpect(jsonPath("$[1].submittedAt").value(dto2.getSubmittedAt().toString()));
+                .andExpect(jsonPath("$.content[0].id").value(dto.getId()))
+                .andExpect(jsonPath("$.content[0].grade").value(dto.getGrade()))
+                .andExpect(jsonPath("$.content[0].submittedAt").value(dto.getSubmittedAt().toString()))
+                .andExpect(jsonPath("$.content[1].id").value(dto2.getId()))
+                .andExpect(jsonPath("$.content[1].grade").value(dto2.getGrade()))
+                .andExpect(jsonPath("$.content[1].submittedAt").value(dto2.getSubmittedAt().toString()))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.pageSize").value(10))
+                .andExpect(jsonPath("$.last").value(true))
+                .andExpect(jsonPath("$.pageSize").value(10))
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.last").value(true))
+                .andExpect(jsonPath("$.pageNum").value(0));
     }
 
     @Test

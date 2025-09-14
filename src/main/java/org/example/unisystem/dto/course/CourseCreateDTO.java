@@ -1,7 +1,6 @@
 package org.example.unisystem.dto.course;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -24,7 +23,7 @@ public class CourseCreateDTO {
     @Size(min = 3, max = 50, message = "title.size.must.be.between.3.to.50")
     private String title;
 
-    @NotBlank(message = "credits.is.required")
+
     @Positive(message = "credits.must.be.positive")
     private Integer credits;
 

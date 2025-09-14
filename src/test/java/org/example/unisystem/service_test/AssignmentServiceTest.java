@@ -4,21 +4,26 @@ import org.example.unisystem.dto.assignment.AssignmentCreateDTO;
 import org.example.unisystem.dto.assignment.AssignmentDTO;
 import org.example.unisystem.dto.assignment.AssignmentPatchDTO;
 import org.example.unisystem.dto.assignment.AssignmentUpdateDTO;
-import org.example.unisystem.dto.student.StudentUpdateDTO;
 import org.example.unisystem.entity.Assignment;
-import org.example.unisystem.entity.Student;
+import org.example.unisystem.entity.Course;
+import org.example.unisystem.entity.Professor;
 import org.example.unisystem.jpa_repo.AssignmentJpaRepository;
+import org.example.unisystem.jpa_repo.CourseJpaRepository;
 import org.example.unisystem.mappers.AssignmentMapper;
+import org.example.unisystem.pagination.PaginationResponse;
 import org.example.unisystem.patch.AssignmentPatchApplier;
 import org.example.unisystem.service.AssignmentServiceImpl;
-import org.example.unisystem.service_interface.AssignmentService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.time.LocalDate;
@@ -30,6 +35,9 @@ public class AssignmentServiceTest {
 
     @Mock
     AssignmentJpaRepository assignmentJpaRepository;
+
+    @Mock
+    CourseJpaRepository courseJpaRepository;
 
     @Mock
     AssignmentMapper assignmentMapper;
@@ -78,7 +86,8 @@ public class AssignmentServiceTest {
                 null, null
         );
 
-        when(assignmentJpaRepository.findAll()).thenReturn(List.of(assignment,assignment2));
+        Page<Assignment> page = new PageImpl<>(List.of(assignment,assignment2), PageRequest.of(0,10), 2);
+        when(assignmentJpaRepository.findAll(any(Pageable.class))).thenReturn(page);
 
         when(assignmentMapper.assignmentToDTO(assignment)).thenReturn(
                 new AssignmentDTO(
@@ -94,7 +103,8 @@ public class AssignmentServiceTest {
                 )
         );
 
-        List<AssignmentDTO> assignments = assignmentService.getAllAssignments();
+        PaginationResponse<AssignmentDTO> response = assignmentService.getAllAssignments(PageRequest.of(0,10));
+        List<AssignmentDTO> assignments = response.getContent();
 
         assertEquals(assignment.getId(), assignments.get(0).getId());
         assertEquals(assignment.getDueDate(), assignments.get(0).getDueDate());
@@ -103,6 +113,11 @@ public class AssignmentServiceTest {
         assertEquals(assignment2.getId(), assignments.get(1).getId());
         assertEquals(assignment2.getDueDate(), assignments.get(1).getDueDate());
         assertEquals(assignment2.getTitle(), assignments.get(1).getTitle());
+        assertEquals(0, response.getPageNum());
+        assertEquals(10, response.getPageSize());
+        assertEquals(2, response.getTotalElements());
+        assertEquals(1, response.getTotalPages());
+        assertEquals(true, response.isLast());
     }
 
     @Test
@@ -138,6 +153,91 @@ public class AssignmentServiceTest {
         assertEquals(response.getId(), dto.getId());
         assertEquals(response.getTitle(), dto.getTitle());
         assertEquals(response.getDueDate(), dto.getDueDate());
+    }
+
+    @Test
+    void createAssignmentForCourseWithoutProfessor() {
+        Course course = new Course(
+                1L, "title", 10, null, null, null
+        );
+
+        when(courseJpaRepository.findByIdGraph(1L)).thenReturn(Optional.of(course));
+
+        AssignmentCreateDTO dto = new AssignmentCreateDTO(
+                "title", LocalDate.of(10,10,10), null,null
+        );
+
+        Assignment assignment = new Assignment(
+                null, "title", LocalDate.of(10,10,10), null,null
+        );
+
+        Assignment savedAssignment = new Assignment(
+                1L, "title", LocalDate.of(10,10,10), null,null
+        );
+
+        AssignmentDTO assignmentDTO = new AssignmentDTO(
+                1L, "title", LocalDate.of(10,10,10), null,null
+        );
+
+        when(assignmentMapper.dtoToAssignment(dto)).thenReturn(assignment);
+        when(assignmentJpaRepository.save(assignment)).thenReturn(savedAssignment);
+        when(assignmentMapper.assignmentToDTO(savedAssignment)).thenReturn(assignmentDTO);
+
+        AssignmentDTO result = assignmentService.createAssignmentForCourse(null,1L, dto);
+
+        assertEquals(assignmentDTO, result);
+        assertSame(course, assignment.getCourse());
+
+        verify(courseJpaRepository).findByIdGraph(1L);
+        verify(assignmentMapper).dtoToAssignment(dto);
+        verify(assignmentJpaRepository).save(assignment);
+        verify(assignmentMapper).assignmentToDTO(savedAssignment);
+    }
+
+    @Test
+    void createAssignmentForCourse() {
+        Professor professor = new Professor(
+                1L, "name", "surname", "department", null
+        );
+
+        Course course = new Course(
+                1L, "title", 10, null, professor, null
+        );
+
+        when(courseJpaRepository.findByIdGraph(1L)).thenReturn(Optional.of(course));
+
+        AssignmentCreateDTO dto = new AssignmentCreateDTO(
+                "title", LocalDate.of(10,10,10), null,null
+        );
+
+        Assignment assignment = new Assignment(
+                null, "title", LocalDate.of(10,10,10), null,null
+        );
+
+        Assignment savedAssignment = new Assignment(
+                1L, "title", LocalDate.of(10,10,10), null,null
+        );
+
+        AssignmentDTO assignmentDTO = new AssignmentDTO(
+                1L, "title", LocalDate.of(10,10,10), null,null
+        );
+
+        when(assignmentMapper.dtoToAssignment(dto)).thenReturn(assignment);
+        when(assignmentJpaRepository.save(assignment)).thenReturn(savedAssignment);
+        when(assignmentMapper.assignmentToDTO(savedAssignment)).thenReturn(assignmentDTO);
+
+        AssignmentDTO result = assignmentService.createAssignmentForCourse(1L,1L, dto);
+
+        assertEquals(assignmentDTO, result);
+        assertSame(course, assignment.getCourse());
+        assertEquals(1L, course.getProfessor().getId());
+        assertThrows(IllegalArgumentException.class,
+                () -> assignmentService.createAssignmentForCourse(2L, 1L, dto));
+
+        verify(courseJpaRepository, times(2)).findByIdGraph(1L);
+        verify(assignmentMapper).dtoToAssignment(dto);
+        verify(assignmentJpaRepository).save(assignment);
+        verify(assignmentMapper).assignmentToDTO(savedAssignment);
     }
 
     @Test

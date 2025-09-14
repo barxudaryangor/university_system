@@ -4,9 +4,15 @@ import org.example.unisystem.dto.submission.SubmissionCreateDTO;
 import org.example.unisystem.dto.submission.SubmissionDTO;
 import org.example.unisystem.dto.submission.SubmissionPatchDTO;
 import org.example.unisystem.dto.submission.SubmissionUpdateDTO;
+import org.example.unisystem.entity.Assignment;
+import org.example.unisystem.entity.Student;
 import org.example.unisystem.entity.Submission;
+import org.example.unisystem.enums.Gender;
+import org.example.unisystem.jpa_repo.AssignmentJpaRepository;
+import org.example.unisystem.jpa_repo.StudentJpaRepository;
 import org.example.unisystem.jpa_repo.SubmissionJpaRepository;
 import org.example.unisystem.mappers.SubmissionMapper;
+import org.example.unisystem.pagination.PaginationResponse;
 import org.example.unisystem.patch.SubmissionPatchApplier;
 import org.example.unisystem.service.SubmissionServiceImpl;
 import org.junit.jupiter.api.Test;
@@ -14,9 +20,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,6 +38,12 @@ import static org.mockito.Mockito.*;
 public class SubmissionServiceTest {
     @Mock
     SubmissionJpaRepository submissionJpaRepository;
+
+    @Mock
+    StudentJpaRepository studentJpaRepository;
+
+    @Mock
+    AssignmentJpaRepository assignmentJpaRepository;
 
     @Mock
     SubmissionMapper submissionMapper;
@@ -74,7 +91,9 @@ public class SubmissionServiceTest {
                 null, null
         );
 
-        when(submissionJpaRepository.findAll()).thenReturn(List.of(submission, submission2));
+        Page<Submission> page = new PageImpl<>(List.of(submission,submission2), PageRequest.of(0,10),2);
+
+        when(submissionJpaRepository.findAll(any(Pageable.class))).thenReturn(page);
 
         when(submissionMapper.submissionToDTO(submission))
                 .thenReturn(
@@ -92,7 +111,10 @@ public class SubmissionServiceTest {
                         )
                 );
 
-        List<SubmissionDTO> submissions = submissionService.getAllSubmissions();
+
+
+        PaginationResponse<SubmissionDTO> response = submissionService.getAllSubmissions(PageRequest.of(0,10));
+        List<SubmissionDTO> submissions = response.getContent();
 
         assertEquals(submission.getId(), submissions.get(0).getId());
         assertEquals(submission.getSubmittedAt(), submissions.get(0).getSubmittedAt());
@@ -101,7 +123,13 @@ public class SubmissionServiceTest {
         assertEquals(submission2.getSubmittedAt(), submissions.get(1).getSubmittedAt());
         assertEquals(submission2.getGrade(), submissions.get(1).getGrade());
 
-        verify(submissionJpaRepository).findAll();
+        assertEquals(0, response.getPageNum());
+        assertEquals(10, response.getPageSize());
+        assertEquals(2, response.getTotalElements());
+        assertEquals(1, response.getTotalPages());
+        assertEquals(true, response.isLast());
+
+        verify(submissionJpaRepository).findAll(any(Pageable.class));
     }
 
     @Test
@@ -137,6 +165,57 @@ public class SubmissionServiceTest {
         assertEquals(submissionCreate.getSubmittedAt(), dto.getSubmittedAt());
 
         verify(submissionJpaRepository).save(submission);
+    }
+
+    @Test
+    void submitWork() {
+        Student student = new Student(
+                1L, "name", "surname", Gender.Male,
+                LocalDate.of(2020,10,10),
+                LocalDate.of(2030,10,10),
+                "email@gmail.com",
+                new HashSet<>(), new HashSet<>()
+        );
+
+        when(studentJpaRepository.findByIdGraph(1L)).thenReturn(Optional.of(student));
+
+        Assignment assignment = new Assignment(
+                1L, "title", LocalDate.of(2030,10,10), null, new HashSet<>()
+        );
+
+        when(assignmentJpaRepository.findByIdGraph(1L)).thenReturn(Optional.of(assignment));
+
+        SubmissionCreateDTO submissionCreateDTO = new SubmissionCreateDTO(
+                LocalDate.of(2020,10,10), new BigDecimal(10), null, null
+        );
+
+        Submission submission = new Submission(
+                null, LocalDate.of(2020,10,10), new BigDecimal(10), null, null
+        );
+
+        Submission savedSubmission = new Submission(
+                1L, LocalDate.of(2020,10,10), new BigDecimal(10), student, assignment
+        );
+
+        SubmissionDTO submissionDTO = new SubmissionDTO(
+                1L, LocalDate.of(2020,10,10), new BigDecimal(10), null, null
+        );
+
+        when(submissionMapper.dtoToSubmission(submissionCreateDTO)).thenReturn(submission);
+        when(submissionJpaRepository.save(any(Submission.class))).thenReturn(savedSubmission);
+        when(submissionMapper.submissionToDTO(any(Submission.class))).thenReturn(submissionDTO);
+
+        SubmissionDTO dto = submissionService.submitWork(1L, 1L, submissionCreateDTO);
+
+        assertEquals(savedSubmission.getId(), dto.getId());
+        assertEquals(student.getId(), savedSubmission.getStudent().getId());
+        assertEquals(assignment.getId(), savedSubmission.getAssignment().getId());
+
+        verify(studentJpaRepository).findByIdGraph(1L);
+        verify(assignmentJpaRepository).findByIdGraph(1L);
+        verify(submissionMapper).dtoToSubmission(submissionCreateDTO);
+        verify(submissionJpaRepository).save(any(Submission.class));
+        verify(submissionMapper).submissionToDTO(any(Submission.class));
     }
 
     @Test

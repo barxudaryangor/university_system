@@ -1,19 +1,17 @@
 package org.example.unisystem.controller;
 
-import org.apache.coyote.Response;
 import org.example.unisystem.dto.assignment.AssignmentCreateDTO;
 import org.example.unisystem.dto.assignment.AssignmentDTO;
 import org.example.unisystem.dto.assignment.AssignmentPatchDTO;
 import org.example.unisystem.dto.assignment.AssignmentUpdateDTO;
+import org.example.unisystem.pagination.PaginationResponse;
 import org.example.unisystem.service_interface.AssignmentService;
-import org.springframework.expression.spel.ast.Assign;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/uni/assignments")
@@ -31,8 +29,12 @@ public class AssignmentController {
     }
 
     @GetMapping
-    List<AssignmentDTO> getAllAssignments() {
-        return assignmentService.getAllAssignments();
+    PaginationResponse<AssignmentDTO> getAllAssignments(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page,size);
+        return assignmentService.getAllAssignments(pageable);
     }
 
     @PostMapping

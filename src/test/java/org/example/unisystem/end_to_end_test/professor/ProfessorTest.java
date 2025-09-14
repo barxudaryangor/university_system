@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -20,8 +21,6 @@ import org.springframework.web.context.WebApplicationContext;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @Import(ContainerConfig.class)
@@ -38,10 +37,14 @@ public class ProfessorTest {
 
     private MockMvc mockMvc;
 
+    @Autowired
+    JdbcTemplate jdbcTemplate;
+
     @BeforeEach
     void setMockMvc() {
         mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
         professorJpaRepository.deleteAll();
+        jdbcTemplate.execute("ALTER SEQUENCE professor_id_seq RESTART WITH 1");
     }
 
     @Test
@@ -92,16 +95,21 @@ public class ProfessorTest {
 
         ProfessorDTO returnedDTO2 = objectMapper.readValue(response2, ProfessorDTO.class);
 
-        mockMvc.perform(get("/uni/professors"))
+        mockMvc.perform(get("/uni/professors?page=0&size=10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(returnedDTO.getId()))
-                .andExpect(jsonPath("$[0].name").value(returnedDTO.getName()))
-                .andExpect(jsonPath("$[0].surname").value(returnedDTO.getSurname()))
-                .andExpect(jsonPath("$[0].department").value(returnedDTO.getDepartment()))
-                .andExpect(jsonPath("$[1].id").value(returnedDTO2.getId()))
-                .andExpect(jsonPath("$[1].name").value(returnedDTO2.getName()))
-                .andExpect(jsonPath("$[1].surname").value(returnedDTO2.getSurname()))
-                .andExpect(jsonPath("$[1].department").value(returnedDTO2.getDepartment()));
+                .andExpect(jsonPath("$.content[0].id").value(returnedDTO.getId()))
+                .andExpect(jsonPath("$.content[0].name").value(returnedDTO.getName()))
+                .andExpect(jsonPath("$.content[0].surname").value(returnedDTO.getSurname()))
+                .andExpect(jsonPath("$.content[0].department").value(returnedDTO.getDepartment()))
+                .andExpect(jsonPath("$.content[1].id").value(returnedDTO2.getId()))
+                .andExpect(jsonPath("$.content[1].name").value(returnedDTO2.getName()))
+                .andExpect(jsonPath("$.content[1].surname").value(returnedDTO2.getSurname()))
+                .andExpect(jsonPath("$.content[1].department").value(returnedDTO2.getDepartment()))
+                .andExpect(jsonPath("$.pageSize").value(10))
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.last").value(true))
+                .andExpect(jsonPath("$.pageNum").value(0));
 
 
     }

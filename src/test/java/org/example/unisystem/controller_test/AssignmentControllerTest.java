@@ -7,10 +7,14 @@ import org.example.unisystem.dto.assignment.AssignmentCreateDTO;
 import org.example.unisystem.dto.assignment.AssignmentDTO;
 import org.example.unisystem.dto.assignment.AssignmentPatchDTO;
 import org.example.unisystem.dto.assignment.AssignmentUpdateDTO;
+import org.example.unisystem.pagination.PaginationResponse;
 import org.example.unisystem.service_interface.AssignmentService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -23,7 +27,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 @WebMvcTest(AssignmentController.class)
 public class AssignmentControllerTest {
@@ -68,16 +71,27 @@ public class AssignmentControllerTest {
                 null, null
         );
 
-        when(assignmentService.getAllAssignments()).thenReturn(List.of(assignment1,assignment2));
+        PaginationResponse<AssignmentDTO> response = new PaginationResponse<>(
+                new PageImpl<>(
+                        List.of(assignment1, assignment2), PageRequest.of(0,10), 2
+                )
+        );
+
+        when(assignmentService.getAllAssignments(any(Pageable.class))).thenReturn(response);
 
         mockMvc.perform(get("/uni/assignments"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(assignment1.getId()))
-                .andExpect(jsonPath("$[0].dueDate").value(assignment1.getDueDate().toString()))
-                .andExpect(jsonPath("$[0].title").value(assignment1.getTitle()))
-                .andExpect(jsonPath("$[1].id").value(assignment2.getId()))
-                .andExpect(jsonPath("$[1].dueDate").value(assignment2.getDueDate().toString()))
-                .andExpect(jsonPath("$[1].title").value(assignment2.getTitle()));
+                .andExpect(jsonPath("$.content[0].id").value(assignment1.getId()))
+                .andExpect(jsonPath("$.content[0].dueDate").value(assignment1.getDueDate().toString()))
+                .andExpect(jsonPath("$.content[0].title").value(assignment1.getTitle()))
+                .andExpect(jsonPath("$.content[1].id").value(assignment2.getId()))
+                .andExpect(jsonPath("$.content[1].dueDate").value(assignment2.getDueDate().toString()))
+                .andExpect(jsonPath("$.content[1].title").value(assignment2.getTitle()))
+                .andExpect(jsonPath("$.totalPages").value(response.getTotalPages()))
+                .andExpect(jsonPath("$.totalElements").value(response.getTotalElements()))
+                .andExpect(jsonPath("$.last").value(response.isLast()))
+                .andExpect(jsonPath("$.pageNum").value(response.getPageNum()))
+                .andExpect(jsonPath("$.pageNum").value(0));
     }
 
     @Test

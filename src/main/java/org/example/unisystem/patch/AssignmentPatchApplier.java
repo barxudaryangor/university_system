@@ -5,13 +5,11 @@ import org.example.unisystem.dto.assignment.AssignmentPatchDTO;
 import org.example.unisystem.entity.Assignment;
 import org.example.unisystem.entity.Course;
 import org.example.unisystem.entity.Submission;
-import org.example.unisystem.jpa_repo.AssignmentJpaRepository;
 import org.example.unisystem.jpa_repo.CourseJpaRepository;
 import org.example.unisystem.jpa_repo.SubmissionJpaRepository;
 import org.example.unisystem.short_dto.SubmissionShortDTO;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;

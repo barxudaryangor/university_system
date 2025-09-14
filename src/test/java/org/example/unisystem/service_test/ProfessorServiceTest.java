@@ -7,14 +7,18 @@ import org.example.unisystem.dto.professor.ProfessorUpdateDTO;
 import org.example.unisystem.entity.Professor;
 import org.example.unisystem.jpa_repo.ProfessorJpaRepository;
 import org.example.unisystem.mappers.ProfessorMapper;
+import org.example.unisystem.pagination.PaginationResponse;
 import org.example.unisystem.patch.ProfessorPatchApplier;
 import org.example.unisystem.service.ProfessorServiceImpl;
-import org.example.unisystem.service_interface.ProfessorService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -92,9 +96,11 @@ public class ProfessorServiceTest {
                         null)
         );
 
-        when(professorJpaRepository.findAll()).thenReturn(List.of(professor, professor2));
+        Page<Professor> page = new PageImpl<>(List.of(professor,professor2), PageRequest.of(0,10), 2);
+        when(professorJpaRepository.findAll(any(Pageable.class))).thenReturn(page);
 
-        List<ProfessorDTO> professors = professorService.getAllProfessors();
+        PaginationResponse<ProfessorDTO> response = professorService.getAllProfessors(PageRequest.of(0,10));
+        List<ProfessorDTO> professors = response.getContent();
 
         assertEquals(professors.get(0).getId(), professor.getId());
         assertEquals(professors.get(0).getName(), professor.getName());
@@ -106,7 +112,13 @@ public class ProfessorServiceTest {
         assertEquals(professors.get(1).getSurname(), professor2.getSurname());
         assertEquals(professors.get(1).getDepartment(), professor2.getDepartment());
 
-        verify(professorJpaRepository).findAll();
+        assertEquals(0, response.getPageNum());
+        assertEquals(10, response.getPageSize());
+        assertEquals(2, response.getTotalElements());
+        assertEquals(1, response.getTotalPages());
+        assertEquals(true, response.isLast());
+
+        verify(professorJpaRepository).findAll(any(Pageable.class));
     }
 
     @Test

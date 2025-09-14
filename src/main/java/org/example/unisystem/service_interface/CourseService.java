@@ -4,15 +4,16 @@ import org.example.unisystem.dto.course.CourseCreateDTO;
 import org.example.unisystem.dto.course.CourseDTO;
 import org.example.unisystem.dto.course.CoursePatchDTO;
 import org.example.unisystem.dto.course.CourseUpdateDTO;
-
-import java.util.List;
+import org.example.unisystem.pagination.PaginationResponse;
+import org.springframework.data.domain.Pageable;
 
 public interface CourseService {
     CourseDTO getCourseById(Long id);
-    List<CourseDTO> getAllCourses();
+    PaginationResponse<CourseDTO> getAllCourses(Pageable pageable);
     CourseDTO createCourse(CourseCreateDTO createDTO);
     CourseDTO updateCourse(Long id, CourseUpdateDTO updateDTO);
     CourseDTO patchCourse(Long id, CoursePatchDTO patchDTO);
     void deleteCourse(Long id);
+    CourseDTO createCourseByProfessor(Long professorId, CourseCreateDTO dto);
 
 }

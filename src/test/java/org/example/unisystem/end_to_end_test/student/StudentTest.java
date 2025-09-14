@@ -1,11 +1,13 @@
 package org.example.unisystem.end_to_end_test.student;
 
+import org.example.unisystem.dto.course.CourseCreateDTO;
 import org.example.unisystem.dto.student.StudentCreateDTO;
 import org.example.unisystem.dto.student.StudentPatchDTO;
 import org.example.unisystem.dto.student.StudentUpdateDTO;
 import org.example.unisystem.end_to_end_test.container.ContainerConfig;
 import org.example.unisystem.dto.student.StudentDTO;
 import org.example.unisystem.enums.Gender;
+import org.example.unisystem.jpa_repo.CourseJpaRepository;
 import org.example.unisystem.jpa_repo.StudentJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -36,14 +39,23 @@ public class StudentTest {
     @Autowired
     StudentJpaRepository studentJpaRepository;
 
+    @Autowired
+    CourseJpaRepository courseJpaRepository;
+
+    @Autowired
+    JdbcTemplate jdbcTemplate;
+
     @BeforeEach
     void setMockMvc() {
         mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
         studentJpaRepository.deleteAll();
+        courseJpaRepository.deleteAll();
+        jdbcTemplate.execute("ALTER SEQUENCE student_id_seq RESTART WITH 1");
+        jdbcTemplate.execute("ALTER SEQUENCE course_id_seq RESTART WITH 1");
     }
 
     @Test
-    void findStudentById() throws Exception {
+    void getStudentById() throws Exception {
         StudentCreateDTO request = new StudentCreateDTO("Ani", "Hakobyan", Gender.Female,
                 LocalDate.of(2004, 5, 10), LocalDate.of(2021, 9, 1), "ani@example.com", null, null);
 
@@ -68,7 +80,7 @@ public class StudentTest {
     }
 
     @Test
-    void findAllStudents() throws Exception {
+    void getAllStudents() throws Exception {
         StudentCreateDTO request = new StudentCreateDTO("Ani", "Hakobyan", Gender.Female,
                 LocalDate.of(2004, 5, 10),
                 LocalDate.of(2021, 9, 1), "ani@example.com",
@@ -93,19 +105,34 @@ public class StudentTest {
                 .content(request2Body))
                 .andReturn().getResponse().getContentAsString();
 
-        StudentDTO created = objectMapper.readValue(response, StudentDTO.class);
-        StudentDTO created2 = objectMapper.readValue(response2, StudentDTO.class);
+        StudentDTO student = objectMapper.readValue(response, StudentDTO.class);
+        StudentDTO student2 = objectMapper.readValue(response2, StudentDTO.class);
 
-        mockMvc.perform(get("/uni/students"))
+        mockMvc.perform(get("/uni/students?page=0&size=10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].id").value(created.getId()))
-                .andExpect(jsonPath("$[1].id").value(created2.getId()));
+                .andExpect(jsonPath("$.content[0].id").value(student.getId()))
+                .andExpect(jsonPath("$.content[0].name").value(student.getName()))
+                .andExpect(jsonPath("$.content[0].surname").value(student.getSurname()))
+                .andExpect(jsonPath("$.content[0].sex").value(student.getSex().toString()))
+                .andExpect(jsonPath("$.content[0].birthdate").value(student.getBirthdate().toString()))
+                .andExpect(jsonPath("$.content[0].enrolmentDate").value(student.getEnrolmentDate().toString()))
+                .andExpect(jsonPath("$.content[0].email").value(student.getEmail()))
+                .andExpect(jsonPath("$.content[1].id").value(student2.getId()))
+                .andExpect(jsonPath("$.content[1].name").value(student2.getName()))
+                .andExpect(jsonPath("$.content[1].surname").value(student2.getSurname()))
+                .andExpect(jsonPath("$.content[1].sex").value(student2.getSex().toString()))
+                .andExpect(jsonPath("$.content[1].birthdate").value(student2.getBirthdate().toString()))
+                .andExpect(jsonPath("$.content[1].enrolmentDate").value(student2.getEnrolmentDate().toString()))
+                .andExpect(jsonPath("$.content[1].email").value(student2.getEmail())).andExpect(jsonPath("$.pageNum").value(0))
+                .andExpect(jsonPath("$.pageSize").value(10))
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.last").value(true))
+                .andExpect(jsonPath("$.pageNum").value(0));
     }
 
     @Test
-    void testCreateStudent() throws Exception {
+    void createStudent() throws Exception {
         StudentCreateDTO request = new StudentCreateDTO(
                 "Gor", "Barxudaryan", Gender.Male,
                 LocalDate.of(2005,2,22),
@@ -126,6 +153,35 @@ public class StudentTest {
                 .andExpect(jsonPath("$.name").value("Gor"))
                 .andExpect(jsonPath("$.surname").value("Barxudaryan"));
 
+    }
+
+    @Test
+    void addStudentToCourse() throws Exception {
+        StudentCreateDTO request = new StudentCreateDTO(
+                "Gor", "Barxudaryan", Gender.Male,
+                LocalDate.of(2005,2,22),
+                LocalDate.now(),"gor.barxudaryan.2014@gmail.com", null, null
+        );
+
+        String requestBody = objectMapper.writeValueAsString(request);
+
+        CourseCreateDTO request2 = new CourseCreateDTO(
+                "title", 10, null, null, null
+        );
+
+        String requestBody2 = objectMapper.writeValueAsString(request2);
+
+        mockMvc.perform(post("/uni/students")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody));
+
+        mockMvc.perform(post("/uni/courses")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody2));
+
+        mockMvc.perform(post("/uni/students/1/courses/1"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.courses[0].id").value(1L));
     }
 
     @Test
@@ -212,6 +268,7 @@ public class StudentTest {
                 .andExpect(jsonPath("$.sex").value(patch.getSex().toString()));
 
     }
+
     @Test
     void deleteStudent() throws Exception {
         StudentCreateDTO request = new StudentCreateDTO(
@@ -234,5 +291,37 @@ public class StudentTest {
 
         mockMvc.perform(get("/uni/students/"+responseBody.getId()))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deleteStudentFromDTO() throws Exception {
+        StudentCreateDTO request = new StudentCreateDTO(
+                "Gor", "Barxudaryan", Gender.Male,
+                LocalDate.of(2005,2,22),
+                LocalDate.now(),"gor.barxudaryan.2014@gmail.com", null, null
+        );
+
+        String requestBody = objectMapper.writeValueAsString(request);
+
+        CourseCreateDTO request2 = new CourseCreateDTO(
+                "title", 10, null, null, null
+        );
+
+        String requestBody2 = objectMapper.writeValueAsString(request2);
+
+
+        mockMvc.perform(post("/uni/students")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody));
+
+        mockMvc.perform(post("/uni/courses")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody2));
+
+        mockMvc.perform(post("/uni/students/1/courses/1"))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(delete("/uni/students/1/courses/1"))
+                .andExpect(status().isNoContent());
     }
 }

@@ -26,6 +26,7 @@ public interface CourseMapper {
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
     nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "professor", source = "professor", qualifiedByName = "shortToProfessorRef")
     @Mapping(target = "students", source = "students", qualifiedByName = "shortsToStudentsRefs")
     @Mapping(target = "assignments", source = "assignments", qualifiedByName = "shortsToAssignmentsSmart")
