@@ -44,7 +44,7 @@ public class CourseMapperTest {
     @Test
     void testCourseToDTO() {
         Professor professor = new Professor(1L, "John", "Smith", "CS", null);
-        Student student = new Student(2L, "Alice", "Doe", Gender.Female, LocalDate.now(), LocalDate.now(), "alice@mail", null, null);
+        Student student = new Student(2L, "Alice", "Doe", Gender.FEMALE, LocalDate.now(), LocalDate.now(), "alice@mail", null, null);
         Assignment a = new Assignment(3L, "HW1", LocalDate.now().plusDays(7), null, null);
 
         Course course = new Course();
@@ -71,7 +71,7 @@ public class CourseMapperTest {
         Professor professorEntity = new Professor(null, "John", "Smith", "CS", null);
         professorEntity = professorJpaRepository.save(professorEntity);
 
-        Student studentEntity = new Student(null, "Alice", "Doe", Gender.Female,
+        Student studentEntity = new Student(null, "Alice", "Doe", Gender.FEMALE,
                 LocalDate.now(), LocalDate.now(), "mail", null, null);
         studentEntity = studentJpaRepository.save(studentEntity);
 

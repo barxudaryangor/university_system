@@ -41,7 +41,7 @@ public class StudentMapperTest {
         Course course = new Course(1L, "title", 10, null, null, null);
         Submission submission = new Submission(2L, LocalDate.now(), new BigDecimal(20), null, null);
 
-        Student student = new Student(3L, "name", "surname", Gender.Female, LocalDate.now(), LocalDate.now(), "email", Set.of(course), Set.of(submission));
+        Student student = new Student(3L, "name", "surname", Gender.FEMALE, LocalDate.now(), LocalDate.now(), "email", Set.of(course), Set.of(submission));
 
         StudentDTO studentDTO = studentMapper.studentToDTO(student);
 
@@ -75,7 +75,7 @@ public class StudentMapperTest {
 
 
         StudentCreateDTO studentDTO  = new StudentCreateDTO(
-                "name", "surname", Gender.Female, LocalDate.now(), LocalDate.now(), "email", List.of(courseDTO), List.of(submissionDTO)
+                "name", "surname", Gender.FEMALE, LocalDate.now(), LocalDate.now(), "email", List.of(courseDTO), List.of(submissionDTO)
         );
 
         Student student = studentMapper.dtoToStudent(studentDTO);

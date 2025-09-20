@@ -1,6 +1,5 @@
 package org.example.unisystem.patch;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.example.unisystem.dto.student.StudentPatchDTO;
 import org.example.unisystem.entity.Course;
@@ -23,7 +22,6 @@ public class StudentPatchApplier {
     private final SubmissionJpaRepository submissionJpaRepository;
     private final CourseJpaRepository courseJpaRepository;
 
-    @Transactional
     public void patchStudent(Student s, StudentPatchDTO dto) {
         if(dto.getName() != null) s.setName(dto.getName());
         if(dto.getSex() != null) s.setSex(dto.getSex());

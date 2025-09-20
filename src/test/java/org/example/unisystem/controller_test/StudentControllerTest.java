@@ -54,7 +54,7 @@ public class StudentControllerTest {
     @Test
     void getStudentById() throws Exception {
         StudentDTO student = new StudentDTO(
-                1L, "Gor", "Barxudaryan", Gender.Male,
+                1L, "Gor", "Barxudaryan", Gender.MALE,
                 LocalDate.now(), LocalDate.now(), "gmail",
                 null, null
         );
@@ -76,12 +76,12 @@ public class StudentControllerTest {
     @Test
     void getAllStudents() throws Exception {
         StudentDTO student = new StudentDTO(
-                1L, "Gor", "Barxudaryan", Gender.Male,
+                1L, "Gor", "Barxudaryan", Gender.MALE,
                 LocalDate.now(), LocalDate.now(), "gmail",
                 null, null
         );
 
-        StudentDTO student2 = new StudentDTO(2L, "Ani", "Hakobyan", Gender.Female,
+        StudentDTO student2 = new StudentDTO(2L, "Ani", "Hakobyan", Gender.FEMALE,
                 LocalDate.of(2004, 5, 10), LocalDate.of(2021, 9, 1), "ani@example.com", null, null);
 
         PaginationResponse<StudentDTO> response =
@@ -119,14 +119,14 @@ public class StudentControllerTest {
     @Test
     void createStudent() throws Exception {
         StudentDTO student = new StudentDTO(
-                null, "Gor", "Barxudaryan", Gender.Male,
+                null, "Gor", "Barxudaryan", Gender.MALE,
                 LocalDate.of(2005, 12, 22),
                 LocalDate.of(2021, 9, 1), "gor@example.com",
                 null, null
         );
 
         StudentDTO student2 = new StudentDTO(
-                1L, "Gor", "Barxudaryan", Gender.Male,
+                1L, "Gor", "Barxudaryan", Gender.MALE,
                 student.getBirthdate(), student.getEnrolmentDate(), student.getEmail(),
                 null, null
         );
@@ -155,7 +155,7 @@ public class StudentControllerTest {
         );
 
         StudentDTO studentDTO = new StudentDTO(
-                1L, "name", "surname", Gender.Male, LocalDate.of(1010,10,10),
+                1L, "name", "surname", Gender.MALE, LocalDate.of(1010,10,10),
                 LocalDate.of(80,8,8), "gor.b@gmail.com", List.of(courseDTO),  new ArrayList<>()
         );
 
@@ -172,7 +172,7 @@ public class StudentControllerTest {
     void submitWork() throws Exception {
 
         StudentShortDTO studentShortDTO = new StudentShortDTO(
-                1L, "name", "surname", Gender.Male,
+                1L, "name", "surname", Gender.MALE,
                 LocalDate.of(2020,10,10), LocalDate.of(2026,10,10),
                 "gor@gmail.com");
 
@@ -218,14 +218,14 @@ public class StudentControllerTest {
     @Test
     void updateStudent() throws Exception {
         StudentDTO student = new StudentDTO(
-                1L, "Gor", "Barxudaryan", Gender.Male,
+                1L, "Gor", "Barxudaryan", Gender.MALE,
                 LocalDate.of(2005, 12, 22),
                 LocalDate.of(2021, 9, 1) ,"gor@example.com",
                 null, null
         );
 
         StudentUpdateDTO updatedStudent = new StudentUpdateDTO(
-                "Garik", "Vardanyan", Gender.Male,
+                "Garik", "Vardanyan", Gender.MALE,
                 LocalDate.of(2005, 12, 22),
                 LocalDate.of(2021, 9, 1) ,"gor@example.com",
                 null, null
@@ -258,13 +258,13 @@ public class StudentControllerTest {
     @Test
     void patchStudent() throws Exception {
         Student student = new Student(
-                1L, "Gor", "Barxudaryan", Gender.Male,
+                1L, "Gor", "Barxudaryan", Gender.MALE,
                 LocalDate.now(), LocalDate.now(), "gmail",
                 null, null
         );
 
         StudentDTO student2 = new StudentDTO(
-                1L, "Garik", "Vardanyan", Gender.Female,
+                1L, "Garik", "Vardanyan", Gender.FEMALE,
                 LocalDate.now(), LocalDate.now(), "gmail",
                 null, null
         );
@@ -298,7 +298,7 @@ public class StudentControllerTest {
     @Test
     void deleteStudent() throws Exception {
         StudentDTO student = new StudentDTO(
-                1L, "Gor", "Barxudaryan", Gender.Male,
+                1L, "Gor", "Barxudaryan", Gender.MALE,
                 LocalDate.now(), LocalDate.now(), "gmail",
                 null, null
         );
@@ -319,7 +319,7 @@ public class StudentControllerTest {
         );
 
         StudentDTO studentDTO = new StudentDTO(
-                1L, "name", "surname", Gender.Male, LocalDate.of(1010,10,10),
+                1L, "name", "surname", Gender.MALE, LocalDate.of(1010,10,10),
                 LocalDate.of(80,8,8), "gor.b@gmail.com", List.of(courseDTO),  new ArrayList<>()
         );
 

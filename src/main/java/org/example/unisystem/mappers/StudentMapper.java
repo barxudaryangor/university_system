@@ -22,15 +22,6 @@ public interface StudentMapper {
     @Mapping(source = "submissions", target = "submissions", qualifiedByName = "shortsToSubmissions")
     Student dtoToStudent(StudentCreateDTO studentDTO);
 
-    @BeanMapping(
-            nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
-            nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS
-    )
-    @Mapping(target = "id", ignore = true)
-    @Mapping(source = "courses",     target = "courses",     qualifiedByName = "shortsToCourses")
-    @Mapping(source = "submissions", target = "submissions", qualifiedByName = "shortsToSubmissions")
-    void updateStudentFromDto(StudentUpdateDTO studentDTO, @MappingTarget Student student);
-
     @AfterMapping
     default void backLink(@MappingTarget Student student) {
         if (student.getCourses() != null) {

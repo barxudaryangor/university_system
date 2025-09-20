@@ -6,13 +6,15 @@ import org.example.unisystem.dto.professor.ProfessorCreateDTO;
 import org.example.unisystem.dto.professor.ProfessorDTO;
 import org.example.unisystem.dto.professor.ProfessorPatchDTO;
 import org.example.unisystem.dto.professor.ProfessorUpdateDTO;
+import org.example.unisystem.entity.Course;
 import org.example.unisystem.entity.Professor;
-import org.example.unisystem.exception.professor.ProfessorNotFoundException;
+import org.example.unisystem.exception.not_found_exception.ProfessorNotFoundException;
 import org.example.unisystem.jpa_repo.ProfessorJpaRepository;
 import org.example.unisystem.mappers.ProfessorMapper;
 import org.example.unisystem.pagination.PaginationResponse;
 import org.example.unisystem.patch.ProfessorPatchApplier;
 import org.example.unisystem.service_interface.ProfessorService;
+import org.example.unisystem.update.ProfessorUpdateApplier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,7 @@ public class ProfessorServiceImpl implements ProfessorService {
     private final ProfessorJpaRepository professorJpaRepository;
     private final ProfessorMapper professorMapper;
     private final ProfessorPatchApplier patchApplier;
+    private final ProfessorUpdateApplier updateApplier;
 
     @Override
     public ProfessorDTO getProfessorById(Long id) {
@@ -54,7 +57,7 @@ public class ProfessorServiceImpl implements ProfessorService {
     public ProfessorDTO updateProfessor(Long id, ProfessorUpdateDTO updateDTO) {
         Professor professor = professorJpaRepository.findByIdGraph(id)
                 .orElseThrow(() -> new ProfessorNotFoundException(id));
-        professorMapper.updateProfessorFromDTO(updateDTO, professor);
+        updateApplier.updateProfessor(professor, updateDTO);
         return professorMapper.professorToDTO(professor);
     }
 
@@ -72,6 +75,10 @@ public class ProfessorServiceImpl implements ProfessorService {
     public void deleteProfessor(Long id) {
         Professor professor = professorJpaRepository.findByIdGraph(id)
                 .orElseThrow(() -> new ProfessorNotFoundException(id));
+        for (Course course : professor.getCourses()) {
+            course.setProfessor(null);
+        }
+        professor.getCourses().clear();
         professorJpaRepository.delete(professor);
     }
 }

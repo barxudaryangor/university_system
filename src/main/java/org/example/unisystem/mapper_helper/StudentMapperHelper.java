@@ -7,6 +7,7 @@ import org.example.unisystem.jpa_repo.CourseJpaRepository;
 import org.example.unisystem.jpa_repo.SubmissionJpaRepository;
 import org.example.unisystem.short_dto.CourseShortDTO;
 import org.example.unisystem.short_dto.SubmissionShortDTO;
+import org.mapstruct.Context;
 import org.mapstruct.Named;
 import org.springframework.stereotype.Component;
 
@@ -96,4 +97,6 @@ public class StudentMapperHelper {
 
         return ids.stream().map(byId::get).collect(Collectors.toSet());
     }
+
+
 }

@@ -170,7 +170,7 @@ public class SubmissionServiceTest {
     @Test
     void submitWork() {
         Student student = new Student(
-                1L, "name", "surname", Gender.Male,
+                1L, "name", "surname", Gender.MALE,
                 LocalDate.of(2020,10,10),
                 LocalDate.of(2030,10,10),
                 "email@gmail.com",

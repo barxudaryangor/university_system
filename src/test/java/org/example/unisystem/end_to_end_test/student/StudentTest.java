@@ -56,7 +56,7 @@ public class StudentTest {
 
     @Test
     void getStudentById() throws Exception {
-        StudentCreateDTO request = new StudentCreateDTO("Ani", "Hakobyan", Gender.Female,
+        StudentCreateDTO request = new StudentCreateDTO("Ani", "Hakobyan", Gender.FEMALE,
                 LocalDate.of(2004, 5, 10), LocalDate.of(2021, 9, 1), "ani@example.com", null, null);
 
         String requestBody = objectMapper.writeValueAsString(request);
@@ -81,13 +81,13 @@ public class StudentTest {
 
     @Test
     void getAllStudents() throws Exception {
-        StudentCreateDTO request = new StudentCreateDTO("Ani", "Hakobyan", Gender.Female,
+        StudentCreateDTO request = new StudentCreateDTO("Ani", "Hakobyan", Gender.FEMALE,
                 LocalDate.of(2004, 5, 10),
                 LocalDate.of(2021, 9, 1), "ani@example.com",
                 null, null);
 
         StudentCreateDTO request2 = new StudentCreateDTO(
-                "Gor", "Barxudaryan", Gender.Male,
+                "Gor", "Barxudaryan", Gender.MALE,
                 LocalDate.of(2005,2,22),
                 LocalDate.now(),"gor.barxudaryan.2014@gmail.com", null, null
         );
@@ -134,7 +134,7 @@ public class StudentTest {
     @Test
     void createStudent() throws Exception {
         StudentCreateDTO request = new StudentCreateDTO(
-                "Gor", "Barxudaryan", Gender.Male,
+                "Gor", "Barxudaryan", Gender.MALE,
                 LocalDate.of(2005,2,22),
                 LocalDate.now(),"gor.barxudaryan.2014@gmail.com", null, null
         );
@@ -158,7 +158,7 @@ public class StudentTest {
     @Test
     void addStudentToCourse() throws Exception {
         StudentCreateDTO request = new StudentCreateDTO(
-                "Gor", "Barxudaryan", Gender.Male,
+                "Gor", "Barxudaryan", Gender.MALE,
                 LocalDate.of(2005,2,22),
                 LocalDate.now(),"gor.barxudaryan.2014@gmail.com", null, null
         );
@@ -188,7 +188,7 @@ public class StudentTest {
     void updateStudent() throws Exception {
         StudentCreateDTO  request = new StudentCreateDTO (
                 "Garik", "Barxudaryan",
-                Gender.Male, LocalDate.of(2006,9,19),
+                Gender.MALE, LocalDate.of(2006,9,19),
                 LocalDate.of(2025,9,1), "garik@gmail.com",
                 null, null);
 
@@ -204,7 +204,7 @@ public class StudentTest {
         StudentUpdateDTO updatedRequest = new StudentUpdateDTO(
                 "Gor",
                 "Asatryan",
-                Gender.Male,
+                Gender.MALE,
                 LocalDate.of(2006,9,19),
                 LocalDate.of(2025,9,1),
                 "gor@gmail.com",
@@ -239,7 +239,7 @@ public class StudentTest {
 
     @Test
     void patchStudent() throws Exception {
-        StudentCreateDTO request = new StudentCreateDTO("Ani", "Hakobyan", Gender.Female,
+        StudentCreateDTO request = new StudentCreateDTO("Ani", "Hakobyan", Gender.FEMALE,
                 LocalDate.of(2004, 5, 10), LocalDate.of(2021, 9, 1), "ani@example.com", null, null);
 
         String requestBody = objectMapper.writeValueAsString(request);
@@ -252,7 +252,7 @@ public class StudentTest {
         StudentDTO created = objectMapper.readValue(response, StudentDTO.class);
 
         StudentPatchDTO patch = new StudentPatchDTO(
-                "Gor", "Barxudaryan", Gender.Male, LocalDate.of(2005,2,22),
+                "Gor", "Barxudaryan", Gender.MALE, LocalDate.of(2005,2,22),
                 LocalDate.of(2022, 10, 10), "gor.b@gmail.com", null, null
         );
 
@@ -273,7 +273,7 @@ public class StudentTest {
     void deleteStudent() throws Exception {
         StudentCreateDTO request = new StudentCreateDTO(
                 "Garik", "Barxudaryan",
-                Gender.Male, LocalDate.of(2006,9,19),
+                Gender.MALE, LocalDate.of(2006,9,19),
                 LocalDate.of(2025,9,1), "garik@gmail.com",
                 null, null);
 
@@ -296,7 +296,7 @@ public class StudentTest {
     @Test
     void deleteStudentFromDTO() throws Exception {
         StudentCreateDTO request = new StudentCreateDTO(
-                "Gor", "Barxudaryan", Gender.Male,
+                "Gor", "Barxudaryan", Gender.MALE,
                 LocalDate.of(2005,2,22),
                 LocalDate.now(),"gor.barxudaryan.2014@gmail.com", null, null
         );

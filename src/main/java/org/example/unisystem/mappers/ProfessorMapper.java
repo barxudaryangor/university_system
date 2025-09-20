@@ -19,13 +19,6 @@ public interface ProfessorMapper {
     @Mapping(source = "courses", target = "courses", qualifiedByName = "shortsToCourses")
     Professor dtoToProfessor(ProfessorCreateDTO professorDTO);
 
-
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
-    nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
-    @Mapping(target = "id", ignore = true)
-    @Mapping(source = "courses", target = "courses", qualifiedByName = "shortsToCourses")
-    void updateProfessorFromDTO(ProfessorUpdateDTO updateDTO, @MappingTarget Professor professor);
-
     @AfterMapping
     default void backLinksCourses(@MappingTarget Professor professor) {
         Set<Course> courses = professor.getCourses();

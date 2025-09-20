@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Course</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="container mt-4">
+
+<h2>Add Course</h2>
+
+<form th:action="@{/ui/courses}" th:object="${course}" method="post">
+    <!-- Title -->
+    <div class="mb-3">
+        <label class="form-label">Title</label>
+        <input type="text" th:field="*{title}" class="form-control"/>
+    </div>
+
+    <!-- Credits -->
+    <div class="mb-3">
+        <label class="form-label">Credits</label>
+        <input type="number" th:field="*{credits}" class="form-control"/>
+    </div>
+
+    <!-- Professor -->
+    <div class="mb-3">
+        <label class="form-label">Professor (ID)</label>
+        <input type="number" name="professor" class="form-control" placeholder="Enter professor ID"/>
+    </div>
+
+    <!-- Assignments -->
+    <div class="mb-3" id="assignments-container">
+        <label class="form-label">Assignments (IDs)</label>
+        <button type="button" class="btn btn-sm btn-success mb-2" onclick="addAssignment()">+ Add Assignment</button>
+    </div>
+
+    <!-- Submissions -->
+    <div class="mb-3" id="students-container">
+        <label class="form-label">Students (IDs)</label>
+        <button type="button" class="btn btn-sm btn-success mb-2" onclick="addStudent()">+ Add Student</button>
+    </div>
+
+    <script>
+        let assignmentIndex = 0;
+        let studentIndex = 0;
+
+        function addAssignment() {
+            const container = document.getElementById("assignments-container");
+            const input = document.createElement("input");
+            input.type = "number";
+            input.name = `assignments[${assignmentIndex}]`; // 👈 без ".id"
+            input.className = "form-control mb-2";
+            input.placeholder = `Assignment ID ${assignmentIndex + 1}`;
+            container.appendChild(input);
+            assignmentIndex++;
+        }
+
+        function addStudent() {
+            const container = document.getElementById("students-container");
+            const input = document.createElement("input");
+            input.type = "number";
+            input.name = `students[${studentIndex}]`; // 👈 без ".id"
+            input.className = "form-control mb-2";
+            input.placeholder = `Submission ID ${studentIndex + 1}`;
+            container.appendChild(input);
+            studentIndex++;
+        }
+    </script>
+
+
+    <!-- Buttons -->
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a th:href="@{/ui/courses}" class="btn btn-secondary">Cancel</a>
+</form>
+
+</body>
+</html>

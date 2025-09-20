@@ -30,6 +30,6 @@ public class Course {
     @JoinColumn(name = "professor_id")
     private Professor professor;
 
-    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Assignment> assignments = new HashSet<>();
 }

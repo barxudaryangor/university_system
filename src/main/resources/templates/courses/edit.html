@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Course</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="container mt-4">
+
+<h2>Edit Course</h2>
+
+<form th:action="@{/ui/courses/{id}(id=${course.id})}"
+      th:object="${course}"
+      method="post">
+
+    <!-- Title -->
+    <div class="mb-3">
+        <label class="form-label">Title</label>
+        <input type="text" th:field="*{title}" class="form-control"/>
+    </div>
+
+    <!-- Credits -->
+    <div class="mb-3">
+        <label class="form-label">Credits</label>
+        <input type="number" th:field="*{credits}" class="form-control"/>
+    </div>
+
+    <!-- Professor -->
+    <div class="mb-3">
+        <label class="form-label">Professor (ID)</label>
+        <input type="number" th:field="*{professor}" class="form-control"/>
+    </div>
+
+    <!-- Assignments -->
+    <div class="mb-3" id="assignments-container">
+        <label class="form-label">Assignments (IDs)</label>
+        <button type="button" class="btn btn-sm btn-success mb-2" onclick="addAssignment()">+ Add Assignment</button>
+        <div th:each="a, iterStat : *{assignments}">
+            <input type="number"
+                   th:name="|assignments[${iterStat.index}]|"
+                   th:value="${a.id}"
+                   class="form-control mb-2"/>
+        </div>
+    </div>
+
+    <!-- Students -->
+    <div class="mb-3" id="students-container">
+        <label class="form-label">Students (IDs)</label>
+        <button type="button" class="btn btn-sm btn-success mb-2" onclick="addStudent()">+ Add Student</button>
+        <div th:each="s, iterStat : *{students}">
+            <input type="number"
+                   th:name="|students[${iterStat.index}]|"
+                   th:value="${s.id}"
+                   class="form-control mb-2"/>
+        </div>
+    </div>
+
+    <script>
+        let assignmentIndex = [[${course.assignments != null ? course.assignments.size() : 0}]];
+        let studentIndex = [[${course.students != null ? course.students.size() : 0}]];
+
+        function addAssignment() {
+            const container = document.getElementById("assignments-container");
+            const input = document.createElement("input");
+            input.type = "number";
+            input.name = `assignments[${assignmentIndex}]`;
+            input.className = "form-control mb-2";
+            input.placeholder = `Assignment ID ${assignmentIndex + 1}`;
+            container.appendChild(input);
+            assignmentIndex++;
+        }
+
+        function addStudent() {
+            const container = document.getElementById("students-container");
+            const input = document.createElement("input");
+            input.type = "number";
+            input.name = `students[${studentIndex}]`;
+            input.className = "form-control mb-2";
+            input.placeholder = `Student ID ${studentIndex + 1}`;
+            container.appendChild(input);
+            studentIndex++;
+        }
+    </script>
+
+    <button type="submit" class="btn btn-primary">Update</button>
+    <a th:href="@{/ui/courses}" class="btn btn-secondary">Cancel</a>
+</form>
+
+</body>
+</html>

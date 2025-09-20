@@ -35,7 +35,7 @@ public class SubmissionMapperTest {
     @Test
     void submissionToDTO() {
         Student student = new Student(
-                1L, "name", "surname", Gender.Female, LocalDate.now(),LocalDate.now(), "email", null, null
+                1L, "name", "surname", Gender.FEMALE, LocalDate.now(),LocalDate.now(), "email", null, null
         );
 
         Assignment assignment = new Assignment(2L, "title", LocalDate.now(), null, null);
@@ -55,7 +55,7 @@ public class SubmissionMapperTest {
     @Test
     void dtoToSubmission() {
         Student student = new Student(
-                null, "name", "surname", Gender.Female, LocalDate.now(),LocalDate.now(), "email", null, null
+                null, "name", "surname", Gender.FEMALE, LocalDate.now(),LocalDate.now(), "email", null, null
         );
         studentJpaRepository.save(student);
 

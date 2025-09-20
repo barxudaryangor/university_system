@@ -19,14 +19,6 @@ public interface AssignmentMapper {
     @Mapping(target = "submissions", source = "submissions", qualifiedByName = "shortsToSubmissions")
     Assignment dtoToAssignment(AssignmentCreateDTO assignmentDTO);
 
-
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
-    nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "course", source = "course", qualifiedByName = "shortToCourse")
-    @Mapping(target = "submissions", source = "submissions", qualifiedByName = "shortsToSubmissions")
-    void updateAssignmentFromDTO(AssignmentUpdateDTO assignmentDTO, @MappingTarget Assignment assignment);
-
     @AfterMapping
     default void linkSubmissions(@MappingTarget Assignment assignment) {
         if (assignment.getSubmissions() != null) {

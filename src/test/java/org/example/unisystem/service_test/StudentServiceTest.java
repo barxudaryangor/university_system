@@ -49,7 +49,7 @@ class StudentServiceTest {
     @Test
     void getStudentById() {
         Student student = new Student(
-                1L, "Ani", "Hakobyan", Gender.Female,
+                1L, "Ani", "Hakobyan", Gender.FEMALE,
                 LocalDate.of(2004, 5, 10),
                 LocalDate.of(2021, 9, 1),
                 "ani@example.com", new HashSet<>(), new HashSet<>()
@@ -81,13 +81,13 @@ class StudentServiceTest {
     @Test
     void getAllStudents(){
         Student student = new Student(
-                1L, "Ani", "Hakobyan", Gender.Female,
+                1L, "Ani", "Hakobyan", Gender.FEMALE,
                 LocalDate.of(2004, 5, 10),
                 LocalDate.of(2021, 9, 1),
                 "ani@example.com", new HashSet<>(), new HashSet<>()
         );
 
-        Student student2 = new Student(2L, "Alice", "Doe", Gender.Female,
+        Student student2 = new Student(2L, "Alice", "Doe", Gender.FEMALE,
                 LocalDate.now(), LocalDate.now(), "mail", new HashSet<>(), new HashSet<>());
 
         Page<Student> page = new PageImpl<>(List.of(student,student2), PageRequest.of(0,10), 2);
@@ -125,11 +125,11 @@ class StudentServiceTest {
                 studentService.getAllStudents(PageRequest.of(0, 10));
         List<StudentDTO> students = response.getContent();
 
-        assertEquals(students.getFirst().getId(), student.getId());
-        assertEquals(students.getFirst().getName(), student.getName());
-        assertEquals(students.getFirst().getEmail(), student.getEmail());
-        assertEquals(students.getFirst().getSex(), student.getSex());
-        assertEquals(students.getFirst().getEnrolmentDate(), student.getEnrolmentDate());
+        assertEquals(students.get(0).getId(), student.getId());
+        assertEquals(students.get(0).getName(), student.getName());
+        assertEquals(students.get(0).getEmail(), student.getEmail());
+        assertEquals(students.get(0).getSex(), student.getSex());
+        assertEquals(students.get(0).getEnrolmentDate(), student.getEnrolmentDate());
         assertEquals(students.get(0).getBirthdate(), student.getBirthdate());
         assertEquals(students.get(0).getSurname(), student.getSurname());
 
@@ -156,18 +156,18 @@ class StudentServiceTest {
     void createStudent() {
 
         StudentCreateDTO request = new StudentCreateDTO(
-                "Gor", "Barxudaryan", Gender.Male, LocalDate.now(), LocalDate.now(), "email", null,null
+                "Gor", "Barxudaryan", Gender.MALE, LocalDate.now(), LocalDate.now(), "email", null,null
         );
         Student entity = new Student(
-                null, "Gor", "Barxudaryan", Gender.Male, LocalDate.now(), LocalDate.now(), "email", new HashSet<>(), new HashSet<>()
+                null, "Gor", "Barxudaryan", Gender.MALE, LocalDate.now(), LocalDate.now(), "email", new HashSet<>(), new HashSet<>()
         );
 
         Student savedEntity = new Student(
-                1L, "Gor", "Barxudaryan", Gender.Male, LocalDate.now(), LocalDate.now(), "email", new HashSet<>(), new HashSet<>()
+                1L, "Gor", "Barxudaryan", Gender.MALE, LocalDate.now(), LocalDate.now(), "email", new HashSet<>(), new HashSet<>()
         );
 
         StudentDTO response = new StudentDTO(
-                1L, "Gor", "Barxudaryan", Gender.Male, LocalDate.now(), LocalDate.now(), "email", null,null
+                1L, "Gor", "Barxudaryan", Gender.MALE, LocalDate.now(), LocalDate.now(), "email", null,null
         );
 
         when(studentMapper.dtoToStudent(request)).thenReturn(entity);
@@ -190,7 +190,7 @@ class StudentServiceTest {
     @Test
     void updateStudent() {
         Student student = new Student(
-                1L, "Ani", "Hakobyan", Gender.Female,
+                1L, "Ani", "Hakobyan", Gender.FEMALE,
                 LocalDate.of(2004, 5, 10),
                 LocalDate.of(2021, 9, 1),
                 "ani@example.com", new HashSet<>(), new HashSet<>()
@@ -199,21 +199,21 @@ class StudentServiceTest {
 
 
         StudentUpdateDTO updateDto = new StudentUpdateDTO(
-                "Gor", "Barxudaryan", Gender.Male,
+                "Gor", "Barxudaryan", Gender.MALE,
                 LocalDate.of(2005, 12, 22),
                 LocalDate.of(2025, 9, 1),
                 "gor@example.com", null, null
         );
 
         Student updatedEntity = new Student(
-                1L, "Gor", "Barxudaryan", Gender.Male,
+                1L, "Gor", "Barxudaryan", Gender.MALE,
                 LocalDate.of(2005, 12, 22),
                 LocalDate.of(2025, 9, 1),
                 "gor@example.com", new HashSet<>(), new HashSet<>()
         );
 
         StudentDTO updatedDTO = new StudentDTO(
-                1L, "Gor", "Barxudaryan", Gender.Male,
+                1L, "Gor", "Barxudaryan", Gender.MALE,
                 LocalDate.of(2005, 12, 22),
                 LocalDate.of(2025, 9, 1),
                 "gor@example.com", null, null
@@ -247,14 +247,14 @@ class StudentServiceTest {
     @Test
     void patchStudent() {
         Student student = new Student(
-                1L, "Ani", "Hakobyan", Gender.Female,
+                1L, "Ani", "Hakobyan", Gender.FEMALE,
                 LocalDate.of(2004, 5, 10),
                 LocalDate.of(2021, 9, 1),
                 "ani@example.com", new HashSet<>(), new HashSet<>()
         );
 
         StudentPatchDTO updateDto = new StudentPatchDTO(
-                "Garik", "Barxudaryan", Gender.Male,
+                "Garik", "Barxudaryan", Gender.MALE,
                 LocalDate.of(2005, 12, 22),
                 LocalDate.of(2025, 9, 1),
                 "garik@example.com", null, null
@@ -275,7 +275,7 @@ class StudentServiceTest {
         }).when(studentPatch).patchStudent(any(Student.class), any(StudentPatchDTO.class));
 
         StudentDTO responseDTO = new StudentDTO(
-                1L, "Garik", "Barxudaryan", Gender.Male,
+                1L, "Garik", "Barxudaryan", Gender.MALE,
                 LocalDate.of(2005, 12, 22),
                 LocalDate.of(2025, 9, 1),
                 "garik@example.com", null, null
@@ -300,12 +300,12 @@ class StudentServiceTest {
     @Test
     void addStudentToCourse() {
         Student student = new Student(
-                1L, "name", "surname", Gender.Male, LocalDate.of(10,10,10),
+                1L, "name", "surname", Gender.MALE, LocalDate.of(10,10,10),
                 LocalDate.of(8,8,8), "gor@gmai.com", new HashSet<>() , new HashSet<>()
         );
 
         StudentDTO studentDTO = new StudentDTO(
-                1L, "name", "surname", Gender.Male, LocalDate.of(10,10,10),
+                1L, "name", "surname", Gender.MALE, LocalDate.of(10,10,10),
                 LocalDate.of(8,8,8), "gor@gmai.com", new ArrayList<>(), new ArrayList<>()
         );
 
@@ -331,7 +331,7 @@ class StudentServiceTest {
     @Test
     void deleteStudent() {
         Student student = new Student(
-                1L, "Ani", "Hakobyan", Gender.Female,
+                1L, "Ani", "Hakobyan", Gender.FEMALE,
                 LocalDate.of(2004, 5, 10),
                 LocalDate.of(2021, 9, 1),
                 "ani@example.com", new HashSet<>(), new HashSet<>()
@@ -354,7 +354,7 @@ class StudentServiceTest {
         );
 
         Student student = new Student(
-                1L, "name", "surname", Gender.Male, LocalDate.of(10,10,10),
+                1L, "name", "surname", Gender.MALE, LocalDate.of(10,10,10),
                 LocalDate.of(8,8,8), "gor@gmai.com", new HashSet<>(Set.of(course)) , new HashSet<>()
         );
 

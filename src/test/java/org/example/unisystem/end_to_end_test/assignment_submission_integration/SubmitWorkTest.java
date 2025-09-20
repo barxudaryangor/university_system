@@ -62,7 +62,7 @@ public class SubmitWorkTest {
     @Test
     void submitWork() throws Exception {
         StudentCreateDTO studentCreateDTO = new StudentCreateDTO(
-                "name", "surname", Gender.Male,
+                "name", "surname", Gender.MALE,
                 LocalDate.of(2020, 10, 10),
                 LocalDate.of(2020, 12, 12),
                 "gor@gmail.com",

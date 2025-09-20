@@ -8,9 +8,9 @@ import org.example.unisystem.dto.submission.SubmissionUpdateDTO;
 import org.example.unisystem.entity.Assignment;
 import org.example.unisystem.entity.Student;
 import org.example.unisystem.entity.Submission;
-import org.example.unisystem.exception.assignment.AssignmentNotFoundException;
-import org.example.unisystem.exception.student.StudentNotFoundException;
-import org.example.unisystem.exception.submission.SubmissionNotFoundException;
+import org.example.unisystem.exception.not_found_exception.AssignmentNotFoundException;
+import org.example.unisystem.exception.not_found_exception.StudentNotFoundException;
+import org.example.unisystem.exception.not_found_exception.SubmissionNotFoundException;
 import org.example.unisystem.jpa_repo.AssignmentJpaRepository;
 import org.example.unisystem.jpa_repo.StudentJpaRepository;
 import org.example.unisystem.jpa_repo.SubmissionJpaRepository;
@@ -18,6 +18,7 @@ import org.example.unisystem.mappers.SubmissionMapper;
 import org.example.unisystem.pagination.PaginationResponse;
 import org.example.unisystem.patch.SubmissionPatchApplier;
 import org.example.unisystem.service_interface.SubmissionService;
+import org.example.unisystem.update.SubmissionUpdateApplier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,7 @@ public class SubmissionServiceImpl implements SubmissionService {
     private final SubmissionPatchApplier patchApplier;
     private final StudentJpaRepository studentJpaRepository;
     private final AssignmentJpaRepository assignmentJpaRepository;
+    private final SubmissionUpdateApplier updateApplier;
 
     @Override
     public SubmissionDTO getSubmissionById(Long id) {
@@ -60,7 +62,7 @@ public class SubmissionServiceImpl implements SubmissionService {
     public SubmissionDTO updateSubmission(Long id, SubmissionUpdateDTO updateDTO) {
         Submission submission = submissionJpaRepository.findByIdGraph(id)
                 .orElseThrow(() -> new SubmissionNotFoundException(id));
-        submissionMapper.updateSubmissionFromDTO(updateDTO, submission);
+        updateApplier.updateSubmission(submission, updateDTO);
         return submissionMapper.submissionToDTO(submissionJpaRepository.save(submission));
     }
 

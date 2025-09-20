@@ -4,10 +4,11 @@ import org.example.unisystem.dto.student.StudentCreateDTO;
 import org.example.unisystem.dto.student.StudentPatchDTO;
 import org.example.unisystem.dto.student.StudentUpdateDTO;
 import org.example.unisystem.entity.Course;
-import org.example.unisystem.exception.course.CourseNotFoundException;
-import org.example.unisystem.exception.student.StudentNotFoundException;
+import org.example.unisystem.exception.not_found_exception.CourseNotFoundException;
+import org.example.unisystem.exception.not_found_exception.StudentNotFoundException;
 import org.example.unisystem.jpa_repo.CourseJpaRepository;
 import org.example.unisystem.pagination.PaginationResponse;
+import org.example.unisystem.update.StudentUpdateApplier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +30,7 @@ public class StudentServiceImpl implements StudentService {
     private final CourseJpaRepository courseJpaRepository;
     private final StudentMapper studentMapper;
     private final StudentPatchApplier studentPatch;
+    private final StudentUpdateApplier studentUpdate;
 
     @Override
     public StudentDTO getStudentById(Long id) {
@@ -70,7 +72,7 @@ public class StudentServiceImpl implements StudentService {
     public StudentDTO updateStudent(Long id, StudentUpdateDTO studentDTO) {
         Student student = studentJpaRepository.findByIdGraph(id)
                 .orElseThrow(() -> new StudentNotFoundException(id));
-        studentMapper.updateStudentFromDto(studentDTO, student);
+        studentUpdate.updateStudent(student, studentDTO);
         return studentMapper.studentToDTO(studentJpaRepository.save(student));
     }
 

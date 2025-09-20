@@ -40,7 +40,7 @@ public class ProfessorController {
     @GetMapping
     PaginationResponse<ProfessorDTO> getAllProfessors(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "20") int size
     ) {
         Pageable pageable = PageRequest.of(page,size);
         return professorService.getAllProfessors(pageable);

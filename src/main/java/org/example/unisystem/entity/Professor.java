@@ -24,6 +24,6 @@ public class Professor {
     private String surname;
     private String department;
 
-    @OneToMany(mappedBy = "professor", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "professor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Course> courses = new HashSet<>();
 }

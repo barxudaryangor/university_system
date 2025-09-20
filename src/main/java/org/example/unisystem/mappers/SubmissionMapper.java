@@ -19,12 +19,4 @@ public interface SubmissionMapper {
     @Mapping(target = "student", source = "student", qualifiedByName = "shortToStudent")
     Submission dtoToSubmission(SubmissionCreateDTO submissionDTO);
 
-    @BeanMapping(nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS,
-    nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "assignment", source = "assignment", qualifiedByName = "shortToAssignment")
-    @Mapping(target = "student", source = "student", qualifiedByName = "shortToStudent")
-    void updateSubmissionFromDTO(SubmissionUpdateDTO updateDTO, @MappingTarget Submission submission);
-
-
 }

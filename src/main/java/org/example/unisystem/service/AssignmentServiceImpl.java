@@ -8,14 +8,15 @@ import org.example.unisystem.dto.assignment.AssignmentPatchDTO;
 import org.example.unisystem.dto.assignment.AssignmentUpdateDTO;
 import org.example.unisystem.entity.Assignment;
 import org.example.unisystem.entity.Course;
-import org.example.unisystem.exception.assignment.AssignmentNotFoundException;
-import org.example.unisystem.exception.course.CourseNotFoundException;
+import org.example.unisystem.exception.not_found_exception.AssignmentNotFoundException;
+import org.example.unisystem.exception.not_found_exception.CourseNotFoundException;
 import org.example.unisystem.jpa_repo.AssignmentJpaRepository;
 import org.example.unisystem.jpa_repo.CourseJpaRepository;
 import org.example.unisystem.mappers.AssignmentMapper;
 import org.example.unisystem.pagination.PaginationResponse;
 import org.example.unisystem.patch.AssignmentPatchApplier;
 import org.example.unisystem.service_interface.AssignmentService;
+import org.example.unisystem.update.AssignmentUpdateApplier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,7 @@ public class AssignmentServiceImpl implements AssignmentService {
     private final CourseJpaRepository courseJpaRepository;
     private final AssignmentMapper assignmentMapper;
     private final AssignmentPatchApplier assignmentPatchApplier;
+    private final AssignmentUpdateApplier assignmentUpdateApplier;
 
     @Override
     public AssignmentDTO getAssignmentById(Long id) {
@@ -76,7 +78,7 @@ public class AssignmentServiceImpl implements AssignmentService {
     public AssignmentDTO updateAssignment(Long id, AssignmentUpdateDTO assignmentDTO) {
         Assignment assignment = assignmentJpaRepository.findByIdGraph(id)
                 .orElseThrow(() -> new AssignmentNotFoundException(id));
-        assignmentMapper.updateAssignmentFromDTO(assignmentDTO, assignment);
+        assignmentUpdateApplier.updateAssignment(assignment,assignmentDTO);
         return assignmentMapper.assignmentToDTO(assignmentJpaRepository.save(assignment));
     }
 

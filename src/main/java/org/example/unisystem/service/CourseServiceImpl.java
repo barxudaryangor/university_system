@@ -7,14 +7,15 @@ import org.example.unisystem.dto.course.CoursePatchDTO;
 import org.example.unisystem.dto.course.CourseUpdateDTO;
 import org.example.unisystem.entity.Course;
 import org.example.unisystem.entity.Professor;
-import org.example.unisystem.exception.course.CourseNotFoundException;
-import org.example.unisystem.exception.professor.ProfessorNotFoundException;
+import org.example.unisystem.exception.not_found_exception.CourseNotFoundException;
+import org.example.unisystem.exception.not_found_exception.ProfessorNotFoundException;
 import org.example.unisystem.jpa_repo.CourseJpaRepository;
 import org.example.unisystem.jpa_repo.ProfessorJpaRepository;
 import org.example.unisystem.mappers.CourseMapper;
 import org.example.unisystem.pagination.PaginationResponse;
 import org.example.unisystem.patch.CoursePatchApplier;
 import org.example.unisystem.service_interface.CourseService;
+import org.example.unisystem.update.CourseUpdateApplier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,7 @@ public class CourseServiceImpl implements CourseService {
     private final ProfessorJpaRepository professorJpaRepository;
     private final CourseMapper courseMapper;
     private final CoursePatchApplier patchApplier;
+    private final CourseUpdateApplier updateApplier;
 
     @Override
     public CourseDTO getCourseById(Long id) {
@@ -56,7 +58,7 @@ public class CourseServiceImpl implements CourseService {
     public CourseDTO updateCourse(Long id, CourseUpdateDTO updateDTO) {
         Course course = courseJpaRepository.findByIdGraph(id)
                 .orElseThrow(() -> new CourseNotFoundException(id));
-        courseMapper.updateCourseFromDTO(updateDTO, course);
+        updateApplier.updateCourse(course,updateDTO);
         return courseMapper.courseToDTO(course);
     }
 
@@ -74,6 +76,8 @@ public class CourseServiceImpl implements CourseService {
     public void deleteCourse(Long id) {
         Course course = courseJpaRepository.findByIdGraph(id)
                 .orElseThrow(() -> new CourseNotFoundException(id));
+        course.getStudents().forEach(s -> s.getCourses().remove(course));
+        course.getStudents().clear();
         courseJpaRepository.delete(course);
     }
 
