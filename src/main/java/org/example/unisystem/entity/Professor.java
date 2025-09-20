@@ -27,3 +27,4 @@ public class Professor {
     @OneToMany(mappedBy = "professor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Course> courses = new HashSet<>();
 }
+

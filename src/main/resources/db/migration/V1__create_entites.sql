@@ -52,3 +52,10 @@ CREATE TABLE student_course (
     CONSTRAINT fk_sc_student FOREIGN KEY (student_id) REFERENCES student(id) ,
     CONSTRAINT fk_sc_course FOREIGN KEY (course_id) REFERENCES course(id)
 );
+
+CREATE TABLE users (
+                       id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+                       username VARCHAR(50) UNIQUE NOT NULL,
+                       password VARCHAR(255) NOT NULL,
+                       role VARCHAR(20) NOT NULL
+);
