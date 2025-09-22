@@ -35,37 +35,13 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-
-                        .requestMatchers(HttpMethod.GET, "/uni/**").permitAll()
-                        .requestMatchers("/uni/**").authenticated()
-
-                        .requestMatchers(HttpMethod.GET, "/ui/students").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/ui/courses").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/ui/assignments").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/ui/professors").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/ui/submissions").permitAll()
-
-                        .requestMatchers(HttpMethod.GET, "/ui/students/new").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/ui/students/*/edit").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/ui/students/*/patch").authenticated()
-
-                        .requestMatchers(HttpMethod.GET, "/ui/courses/new").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/ui/courses/*/edit").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/ui/courses/*/patch").authenticated()
-
-                        .requestMatchers(HttpMethod.GET, "/ui/assignments/new").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/ui/assignments/*/edit").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/ui/assignments/*/patch").authenticated()
-
-                        .requestMatchers(HttpMethod.GET, "/ui/professors/new").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/ui/professors/*/edit").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/ui/professors/*/patch").authenticated()
-
-                        .requestMatchers(HttpMethod.GET, "/ui/submissions/new").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/ui/submissions/*/edit").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/ui/submissions/*/patch").authenticated()
-
-                        .requestMatchers("/ui/**").authenticated()
+                        .requestMatchers("/uni/students/**", "/uni/submissions/**").hasAnyRole("STUDENT", "ADMIN")
+                        .requestMatchers("/uni/courses/**", "/uni/assignments/**").hasAnyRole("PROFESSOR", "ADMIN")
+                        .requestMatchers("/uni/**").hasRole("ADMIN")
+                        .requestMatchers("/ui/students/**", "/ui/submissions/**").hasAnyRole("STUDENT", "ADMIN")
+                        .requestMatchers("/ui/courses/**", "/ui/assignments/**").hasAnyRole("PROFESSOR", "ADMIN")
+                        .requestMatchers("/ui/**").hasRole("ADMIN")
+                        .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
                         .loginPage("/login")

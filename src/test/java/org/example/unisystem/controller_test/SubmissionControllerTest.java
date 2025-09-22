@@ -10,6 +10,7 @@ import org.example.unisystem.pagination.PaginationResponse;
 import org.example.unisystem.service_interface.SubmissionService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -28,6 +29,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(SubmissionController.class)
+@AutoConfigureMockMvc(addFilters = false)
 public class SubmissionControllerTest {
     @MockitoBean
     SubmissionService submissionService;

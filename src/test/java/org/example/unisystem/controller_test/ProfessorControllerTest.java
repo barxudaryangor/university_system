@@ -18,6 +18,7 @@ import org.example.unisystem.short_dto.CourseShortDTO;
 import org.example.unisystem.short_dto.ProfessorShortDTO;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -35,6 +36,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ProfessorController.class)
+@AutoConfigureMockMvc(addFilters = false)
 public class ProfessorControllerTest {
     @Autowired
     ObjectMapper objectMapper;

@@ -11,6 +11,7 @@ import org.example.unisystem.pagination.PaginationResponse;
 import org.example.unisystem.service_interface.AssignmentService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -29,6 +30,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @WebMvcTest(AssignmentController.class)
+@AutoConfigureMockMvc(addFilters = false)
 public class AssignmentControllerTest {
 
     @MockitoBean

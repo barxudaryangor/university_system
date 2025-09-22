@@ -13,6 +13,7 @@ import org.example.unisystem.mappers.StudentMapper;
 import org.example.unisystem.pagination.PaginationResponse;
 import org.example.unisystem.patch.StudentPatchApplier;
 import org.example.unisystem.service.StudentServiceImpl;
+import org.example.unisystem.update.StudentUpdateApplier;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -42,6 +43,9 @@ class StudentServiceTest {
 
     @Mock
     StudentPatchApplier studentPatch;
+
+    @Mock
+    StudentUpdateApplier studentUpdate;
 
     @InjectMocks
     StudentServiceImpl studentService;
@@ -222,8 +226,8 @@ class StudentServiceTest {
         when(studentJpaRepository.findByIdGraph(1L)).thenReturn(Optional.of(student));
 
         doAnswer(invocation -> {
-            StudentUpdateDTO dto = invocation.getArgument(0);
-            Student target = invocation.getArgument(1);
+            Student target = invocation.getArgument(0);
+            StudentUpdateDTO dto = invocation.getArgument(1);
             target.setName(dto.getName());
             target.setSurname(dto.getSurname());
             target.setSex(dto.getSex());
@@ -231,7 +235,7 @@ class StudentServiceTest {
             target.setEnrolmentDate(dto.getEnrolmentDate());
             target.setEmail(dto.getEmail());
             return null;
-        }).when(studentMapper).updateStudentFromDto(updateDto, student);
+        }).when(studentUpdate).updateStudent( student,updateDto);
 
         when(studentJpaRepository.save(student)).thenReturn(updatedEntity);
         when(studentMapper.studentToDTO(updatedEntity)).thenReturn(updatedDTO);

@@ -12,6 +12,7 @@ import org.example.unisystem.mappers.CourseMapper;
 import org.example.unisystem.pagination.PaginationResponse;
 import org.example.unisystem.patch.CoursePatchApplier;
 import org.example.unisystem.service.CourseServiceImpl;
+import org.example.unisystem.update.CourseUpdateApplier;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,6 +23,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,6 +43,9 @@ public class CourseServiceTest {
 
     @Mock
     CoursePatchApplier coursePatchApplier;
+
+    @Mock
+    CourseUpdateApplier courseUpdateApplier;
 
     @InjectMocks
     CourseServiceImpl courseService;
@@ -208,12 +213,12 @@ public class CourseServiceTest {
         );
 
         doAnswer(invocation -> {
-            CourseUpdateDTO dto = invocation.getArgument(0);
-            Course c = invocation.getArgument(1);
+            Course c = invocation.getArgument(0);
+            CourseUpdateDTO dto = invocation.getArgument(1);
             c.setTitle(dto.getTitle());
             c.setCredits(dto.getCredits());
             return null;
-        }).when(courseMapper).updateCourseFromDTO(any(CourseUpdateDTO.class), any(Course.class));
+        }).when(courseUpdateApplier).updateCourse(any(Course.class), any(CourseUpdateDTO.class));
 
         when(courseJpaRepository.findByIdGraph(1L)).thenReturn(Optional.of(course));
         when(courseMapper.courseToDTO(course)).thenReturn(response);
@@ -271,7 +276,7 @@ public class CourseServiceTest {
     @Test
     void deleteCourse() {
         Course course = new Course(
-                1L, "Title", 10, null, null, null
+                1L, "Title", 10, new HashSet<>(), null, new HashSet<>()
         );
 
         when(courseJpaRepository.findByIdGraph(1L)).thenReturn(Optional.of(course));

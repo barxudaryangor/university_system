@@ -6,7 +6,9 @@ import org.example.unisystem.dto.professor.ProfessorDTO;
 import org.example.unisystem.dto.professor.ProfessorPatchDTO;
 import org.example.unisystem.dto.professor.ProfessorUpdateDTO;
 import org.example.unisystem.end_to_end_test.container.ContainerConfig;
+import org.example.unisystem.jpa_repo.CourseJpaRepository;
 import org.example.unisystem.jpa_repo.ProfessorJpaRepository;
+import org.example.unisystem.jpa_repo.StudentJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +37,12 @@ public class ProfessorTest {
     @Autowired
     ProfessorJpaRepository professorJpaRepository;
 
+    @Autowired
+    StudentJpaRepository studentJpaRepository;
+
+    @Autowired
+    CourseJpaRepository courseJpaRepository;
+
     private MockMvc mockMvc;
 
     @Autowired
@@ -43,6 +51,8 @@ public class ProfessorTest {
     @BeforeEach
     void setMockMvc() {
         mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
+        studentJpaRepository.deleteAll();
+        courseJpaRepository.deleteAll();
         professorJpaRepository.deleteAll();
         jdbcTemplate.execute("ALTER SEQUENCE professor_id_seq RESTART WITH 1");
     }

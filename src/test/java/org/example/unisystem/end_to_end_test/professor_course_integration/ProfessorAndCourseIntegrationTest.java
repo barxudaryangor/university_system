@@ -6,6 +6,7 @@ import org.example.unisystem.dto.professor.ProfessorCreateDTO;
 import org.example.unisystem.end_to_end_test.container.ContainerConfig;
 import org.example.unisystem.jpa_repo.CourseJpaRepository;
 import org.example.unisystem.jpa_repo.ProfessorJpaRepository;
+import org.example.unisystem.jpa_repo.StudentJpaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,24 +37,34 @@ public class ProfessorAndCourseIntegrationTest {
     @Autowired
     CourseJpaRepository courseJpaRepository;
 
+    @Autowired
+    StudentJpaRepository studentJpaRepository;
+
     @BeforeEach
     void setMockMvc() {
         mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
-        professorJpaRepository.deleteAll();
+        studentJpaRepository.deleteAll();
         courseJpaRepository.deleteAll();
+        professorJpaRepository.deleteAll();
     }
 
     @Test
-    void createCourseByProfessor() throws Exception{
+    void createCourseByProfessor() throws Exception {
         ProfessorCreateDTO professorCreateDTO = new ProfessorCreateDTO(
-                "name", "surname","department",null
+                "name", "surname", "department", null
         );
 
         String request = objectMapper.writeValueAsString(professorCreateDTO);
 
-        mockMvc.perform(post("/uni/professors")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(request));
+        String professorResponse = mockMvc.perform(post("/uni/professors")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        Long professorId = objectMapper.readTree(professorResponse).get("id").asLong();
 
         CourseCreateDTO courseCreateDTO = new CourseCreateDTO(
                 "title", 10, null, null, null
@@ -61,14 +72,14 @@ public class ProfessorAndCourseIntegrationTest {
 
         String request2 = objectMapper.writeValueAsString(courseCreateDTO);
 
-
-        mockMvc.perform(post("/uni/professors/" + 1L + "/courses")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(request2))
-                .andExpect(jsonPath("$.id").value(1L))
+        mockMvc.perform(post("/uni/professors/" + professorId + "/courses")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request2))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").exists())
                 .andExpect(jsonPath("$.title").value(courseCreateDTO.getTitle()))
                 .andExpect(jsonPath("$.credits").value(courseCreateDTO.getCredits()))
-                .andExpect(jsonPath("$.professor.id").value(1L))
+                .andExpect(jsonPath("$.professor.id").value(professorId))
                 .andExpect(jsonPath("$.professor.name").value(professorCreateDTO.getName()))
                 .andExpect(jsonPath("$.professor.surname").value(professorCreateDTO.getSurname()))
                 .andExpect(jsonPath("$.professor.department").value(professorCreateDTO.getDepartment()));

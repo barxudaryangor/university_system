@@ -51,12 +51,10 @@ public class CourseAndAssignmentIntegrationTest {
     @BeforeEach
     void setMockMvc() {
         mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
-        courseJpaRepository.deleteAll();
-        assignmentJpaRepository.deleteAll();
-        professorJpaRepository.deleteAll();
-        jdbcTemplate.execute("ALTER SEQUENCE professor_id_seq RESTART WITH 1");
-        jdbcTemplate.execute("ALTER SEQUENCE course_id_seq RESTART WITH 1");
-        jdbcTemplate.execute("ALTER SEQUENCE assignment_id_seq RESTART WITH 1");
+        jdbcTemplate.execute("""
+        TRUNCATE TABLE student_course, submission, assignment, student, course, professor 
+        RESTART IDENTITY CASCADE
+    """);
     }
 
     @Test

@@ -15,6 +15,7 @@ import org.example.unisystem.mappers.SubmissionMapper;
 import org.example.unisystem.pagination.PaginationResponse;
 import org.example.unisystem.patch.SubmissionPatchApplier;
 import org.example.unisystem.service.SubmissionServiceImpl;
+import org.example.unisystem.update.SubmissionUpdateApplier;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -50,6 +51,9 @@ public class SubmissionServiceTest {
 
     @Mock
     SubmissionPatchApplier patchApplier;
+
+    @Mock
+    SubmissionUpdateApplier updateApplier;
 
     @InjectMocks
     SubmissionServiceImpl submissionService;
@@ -241,12 +245,13 @@ public class SubmissionServiceTest {
         );
 
         doAnswer(invocation -> {
-            SubmissionUpdateDTO updateDTO2 = invocation.getArgument(0);
-            Submission sub = invocation.getArgument(1);
+            Submission sub = invocation.getArgument(0);
+            SubmissionUpdateDTO updateDTO2 = invocation.getArgument(1);
+
             sub.setSubmittedAt(updateDTO2.getSubmittedAt());
             sub.setGrade(updateDTO2.getGrade());
             return null;
-        }).when(submissionMapper).updateSubmissionFromDTO(any(SubmissionUpdateDTO.class), any(Submission.class));
+        }).when(updateApplier).updateSubmission(any(Submission.class), any(SubmissionUpdateDTO.class));
 
         when(submissionJpaRepository.findByIdGraph(1L)).thenReturn(Optional.of(submission));
         when(submissionJpaRepository.save(submission)).thenReturn(updatedSubmission);

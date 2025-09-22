@@ -10,6 +10,7 @@ import org.example.unisystem.mappers.ProfessorMapper;
 import org.example.unisystem.pagination.PaginationResponse;
 import org.example.unisystem.patch.ProfessorPatchApplier;
 import org.example.unisystem.service.ProfessorServiceImpl;
+import org.example.unisystem.update.ProfessorUpdateApplier;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,6 +21,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,6 +38,9 @@ public class ProfessorServiceTest {
 
     @Mock
     ProfessorPatchApplier patchApplier;
+
+    @Mock
+    ProfessorUpdateApplier updateApplier;
 
     @InjectMocks
     ProfessorServiceImpl professorService;
@@ -169,13 +174,14 @@ public class ProfessorServiceTest {
         when(professorJpaRepository.findByIdGraph(1L)).thenReturn(Optional.of(professor));
 
         doAnswer(invocation -> {
-            ProfessorUpdateDTO dto = invocation.getArgument(0);
-            Professor p = invocation.getArgument(1);
+            Professor p = invocation.getArgument(0);
+            ProfessorUpdateDTO dto = invocation.getArgument(1);
+
             p.setName(dto.getName());
             p.setSurname(dto.getSurname());
             p.setDepartment(dto.getDepartment());
             return null;
-        }).when(professorMapper).updateProfessorFromDTO(any(ProfessorUpdateDTO.class), any(Professor.class));
+        }).when(updateApplier).updateProfessor(any(Professor.class), any(ProfessorUpdateDTO.class));
 
         when(professorMapper.professorToDTO(professor)).thenReturn(mappedDTO);
 
@@ -234,7 +240,7 @@ public class ProfessorServiceTest {
     @Test
     void deleteProfessor() {
         Professor professor = new Professor(
-                1L, "Name", "Surname", "Department", null
+                1L, "Name", "Surname", "Department", new HashSet<>()
         );
 
         when(professorJpaRepository.findByIdGraph(1L)).thenReturn(Optional.of(professor));

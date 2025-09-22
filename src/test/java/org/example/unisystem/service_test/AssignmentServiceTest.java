@@ -13,6 +13,7 @@ import org.example.unisystem.mappers.AssignmentMapper;
 import org.example.unisystem.pagination.PaginationResponse;
 import org.example.unisystem.patch.AssignmentPatchApplier;
 import org.example.unisystem.service.AssignmentServiceImpl;
+import org.example.unisystem.update.AssignmentUpdateApplier;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -44,6 +45,9 @@ public class AssignmentServiceTest {
 
     @Mock
     AssignmentPatchApplier assignmentPatchApplier;
+
+    @Mock
+    AssignmentUpdateApplier assignmentUpdateApplier;
 
     @InjectMocks
     AssignmentServiceImpl assignmentService;
@@ -263,12 +267,12 @@ public class AssignmentServiceTest {
         );
 
         doAnswer(invocation -> {
-            AssignmentUpdateDTO dto = invocation.getArgument(0);
-            Assignment assignment1 = invocation.getArgument(1);
+            Assignment assignment1 = invocation.getArgument(0);
+            AssignmentUpdateDTO dto = invocation.getArgument(1);
             assignment1.setTitle(dto.getTitle());
             assignment1.setDueDate(dto.getDueDate());
             return null;
-        }).when(assignmentMapper).updateAssignmentFromDTO(any(AssignmentUpdateDTO.class), any(Assignment.class));
+        }).when(assignmentUpdateApplier).updateAssignment(any(Assignment.class), any(AssignmentUpdateDTO.class));
 
         when(assignmentJpaRepository.findByIdGraph(1L)).thenReturn(Optional.of(assignment));
         when(assignmentJpaRepository.save(assignment)).thenReturn(updatedAssignment);

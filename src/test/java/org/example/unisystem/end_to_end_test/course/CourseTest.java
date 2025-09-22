@@ -42,8 +42,10 @@ public class CourseTest {
     @BeforeEach
     void setupMvc() {
         mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
-        courseJpaRepository.deleteAll();
-        jdbcTemplate.execute("ALTER SEQUENCE course_id_seq RESTART WITH 1");
+        jdbcTemplate.execute("""
+        TRUNCATE TABLE student_course, submission, assignment, student, course, professor 
+        RESTART IDENTITY CASCADE
+    """);
     }
 
     @Test
